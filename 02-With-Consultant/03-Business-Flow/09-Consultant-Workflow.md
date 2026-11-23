@@ -1,6 +1,5 @@
 # Consultant Workflow
 
-Konsultan hanya menerima assignment berbayar dan tidak melihat, membuat, atau mengubah harga maupun diskon event. Event tidak mengubah SLA atau jumlah revisi pada order yang telah dibayar.
 
 ## 1. Tujuan
 
@@ -9,6 +8,9 @@ Dokumen ini menjelaskan alur operasional Konsultan sebagai aktor platform, mulai
 Workflow ini mengacu pada use case `UCN-01` sampai `UCN-12`.
 
 ## 2. Batas Kewenangan Konsultan
+
+Konsultan hanya menerima assignment berbayar dan tidak melihat, membuat, atau mengubah harga maupun diskon event. Event tidak mengubah SLA atau jumlah revisi pada order yang telah dibayar.
+
 
 Konsultan dapat:
 

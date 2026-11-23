@@ -1,9 +1,4 @@
 # Data Dictionary — TP Docs (By System)
-## Diskon Event Opsional
-
-`discount_campaigns` menyimpan nama, status draft/aktif/nonaktif, jenis persentase atau nominal, nilai, mata uang untuk nominal tetap, rentang waktu, batas pemakaian opsional, dan Admin pembuat. `discount_campaign_targets` menentukan jenis produk dan ID produk opsional; jenis yang didukung ialah paket, add-on dokumen, add-on kursi, Enterprise/Custom, dan pada varian Konsultan juga layanan konsultasi. `discount_redemptions` mencatat penggunaan tepat satu kali per payment berstatus berhasil. Pembelian yang belum berhasil memakai reservasi sementara dengan TTL pada checkout; reservasi kedaluwarsa dilepas.
-
-`payments.original_amount_minor`, `discount_amount_minor`, `amount_minor`, dan `discount_campaign_id` membekukan harga sebelum potongan, potongan, total dibayar, dan event. Kolom sepadan pada `quotations` membekukan Enterprise/Custom saat quotation diterbitkan. Pada varian Konsultan, `consultation_requests` dan `consultation_quotations` menyimpan snapshot jasa. Tanpa promo, referensi event kosong dan potongan nol. Migration menerapkan nilai nonnegatif, `total = original - discount`, `starts_at < ends_at`, persentase 0–100, dan batas penggunaan positif.
 
 ## 1. Tujuan
 
@@ -76,6 +71,13 @@ Aturan yang perlu ditegakkan melalui service dan transaction:
 - Penghapusan Karyawan mencabut membership, assignment, dan session organisasi tanpa menghapus histori dokumen.
 
 ## 5. Subscription, Quota, dan Billing
+
+### Diskon Event Opsional
+
+`discount_campaigns` menyimpan nama, status draft/aktif/nonaktif, jenis persentase atau nominal, nilai, mata uang untuk nominal tetap, rentang waktu, batas pemakaian opsional, dan Admin pembuat. `discount_campaign_targets` menentukan jenis produk dan ID produk opsional; jenis yang didukung ialah paket, add-on dokumen, add-on kursi, Enterprise/Custom. `discount_redemptions` mencatat penggunaan tepat satu kali per payment berstatus berhasil. Pembelian yang belum berhasil memakai reservasi sementara dengan TTL pada checkout; reservasi kedaluwarsa dilepas.
+
+`payments.original_amount_minor`, `discount_amount_minor`, `amount_minor`, dan `discount_campaign_id` membekukan harga sebelum potongan, potongan, total dibayar, dan event. Kolom sepadan pada `quotations` membekukan Enterprise/Custom saat quotation diterbitkan. Tanpa promo, referensi event kosong dan potongan nol. Migration menerapkan nilai nonnegatif, `total = original - discount`, `starts_at < ends_at`, persentase 0–100, dan batas penggunaan positif.
+
 
 ### 5.1 Katalog dan langganan
 

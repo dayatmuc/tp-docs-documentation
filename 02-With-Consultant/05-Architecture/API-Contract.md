@@ -1,17 +1,4 @@
 # API Contract — TP Docs With Consultant
-## Diskon Event Opsional
-
-| Method | Endpoint | Auth | Fungsi |
-| --- | --- | --- | --- |
-| GET | /api/discounts/active | Pengguna | Estimasi harga normal atau promo untuk produk |
-| GET | /api/admin/discount-campaigns | Admin | Daftar dan penggunaan event |
-| POST | /api/admin/discount-campaigns | Admin | Buat draft |
-| PATCH | /api/admin/discount-campaigns/{campaignId} | Admin | Ubah draft dan target |
-| POST | /api/admin/discount-campaigns/{campaignId}/activate | Admin + re-auth | Aktifkan |
-| POST | /api/admin/discount-campaigns/{campaignId}/deactivate | Admin + re-auth | Nonaktifkan |
-
-Checkout dan quotation memakai endpoint yang ada. Backend mengembalikan originalAmountMinor, discountAmountMinor bila ada, totalAmountMinor, currency, dan discountCampaignId opsional. Nominal browser diabaikan. Xendit menerima total snapshot; retry memakai snapshot sama; refund memakai nilai dibayar.
-
 
 ## 1. Tujuan dan Cakupan
 
@@ -228,6 +215,20 @@ type LoginResponse =
 | DELETE | `/api/organizations/{organizationId}/document-assignments/{assignmentId}` | Owner | Cabut penugasan |
 
 ## 11. Plans, Subscription, Quota, dan Billing
+
+### Diskon Event Opsional
+
+| Method | Endpoint | Auth | Fungsi |
+| --- | --- | --- | --- |
+| GET | /api/discounts/active | Pengguna | Estimasi harga normal atau promo untuk produk |
+| GET | /api/admin/discount-campaigns | Admin | Daftar dan penggunaan event |
+| POST | /api/admin/discount-campaigns | Admin | Buat draft |
+| PATCH | /api/admin/discount-campaigns/{campaignId} | Admin | Ubah draft dan target |
+| POST | /api/admin/discount-campaigns/{campaignId}/activate | Admin + re-auth | Aktifkan |
+| POST | /api/admin/discount-campaigns/{campaignId}/deactivate | Admin + re-auth | Nonaktifkan |
+
+Checkout dan quotation memakai endpoint yang ada. Backend mengembalikan originalAmountMinor, discountAmountMinor bila ada, totalAmountMinor, currency, dan discountCampaignId opsional. Nominal browser diabaikan. Xendit menerima total snapshot; retry memakai snapshot sama; refund memakai nilai dibayar.
+
 
 ### 11.1 Plans dan Subscription
 

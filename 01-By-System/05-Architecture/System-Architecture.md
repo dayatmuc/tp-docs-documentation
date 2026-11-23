@@ -1,5 +1,4 @@
 # System Architecture — TP Docs By System
-> `DiscountPricingService` berada di modul billing NestJS. Ia membaca harga katalog/quotation dan event aktif dari PostgreSQL, mengembalikan satu harga final untuk Next.js, payment, dan audit. Worker/webhook mencatat pemakaian sesudah pembayaran terverifikasi. Xendit hanya menerima total server yang telah dibekukan.
 
 ## 1. Tujuan Dokumen
 
@@ -8,6 +7,9 @@ Dokumen ini memberikan gambaran visual arsitektur TP Docs sebagai SaaS multi-ten
 Urutan aktivitas pengguna dan keputusan bisnis tidak dibahas di sini. Detail tersebut berada pada folder `03-Business-Flow`.
 
 ### 1.1 Keputusan arsitektur utama
+
+`DiscountPricingService` berada di modul billing NestJS. Ia membaca harga katalog/quotation dan event aktif dari PostgreSQL, mengembalikan satu harga final untuk Next.js, payment, dan audit. Worker/webhook mencatat pemakaian sesudah pembayaran terverifikasi. Xendit hanya menerima total server yang telah dibekukan.
+
 
 - User Induk, Karyawan, dan Administrator menggunakan satu aplikasi Next.js.
 - Administrator menggunakan route `/admin/**`, tetapi NestJS tetap menjadi sumber otorisasi utama.

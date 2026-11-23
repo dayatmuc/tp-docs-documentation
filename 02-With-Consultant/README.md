@@ -2,23 +2,16 @@
 
 Folder ini merupakan dokumentasi lengkap dan mandiri untuk TP Docs With Consultant. Seluruh kemampuan inti—autentikasi, organisasi, Local File, subscription, AI, document generation, keamanan, database, dan operasional platform—dituliskan penuh di dalam varian ini, kemudian diperluas dengan layanan Konsultan.
 
-## Prinsip Varian
+## Peta folder
 
-- Setiap dokumen dapat dibaca tanpa membuka folder `01-By-System`.
-- Kemampuan inti dan ekstensi Konsultan berada dalam dokumen yang sama agar kedua varian dapat berkembang secara independen.
-- Harga tidak ditulis permanen. Seluruh harga berasal dari katalog atau quotation yang dikelola Administrator.
-- Konsultan adalah role platform internal, bukan membership organisasi pelanggan.
-- Konsultan hanya dapat membuka request berstatus sudah dibayar dan ditugaskan kepadanya.
-
-## Struktur
-
-| Folder | Isi |
+| Folder | Maksud dan isi |
 | --- | --- |
-| `01-Requirements` | PRD serta kebutuhan fungsional dan nonfungsional lengkap |
-| `02-Use-Case` | User Induk, Karyawan, Konsultan, Administrator, dan Draw.io |
-| `03-Business-Flow` | Flow autentikasi, dokumen, billing, konsultasi, dan workflow Konsultan |
-| `04-Database` | ERD terpadu, data dictionary, dan aturan query seluruh domain |
-| `05-Architecture` | Arsitektur sistem lengkap, API, AI, document generation, konsultasi, dan document review |
+| [01-Requirements](./01-Requirements/) | [PRD](./01-Requirements/PRD.md) menetapkan tujuan, cakupan, aktor, serta aturan produk; dokumen fungsional dan nonfungsional merinci kemampuan sistem dan layanan Konsultan. |
+| [02-Use-Case](./02-Use-Case/) | Aktivitas dan hak akses [User Induk](./02-Use-Case/Organization-Owner.md), [Karyawan](./02-Use-Case/Employee.md), [Konsultan](./02-Use-Case/Consultant.md), dan [Administrator](./02-Use-Case/Admin.md), berikut diagram. |
+| [03-Business-Flow](./03-Business-Flow/) | Urutan kerja dan titik keputusan mulai dari autentikasi dan Local File hingga pembayaran jasa, assignment, review, komentar, revisi, dan delivery. Mulai dari [overview](./03-Business-Flow/00-Business-Flow-Overview.md). |
+| [04-Database](./04-Database/) | [ERD](./04-Database/ERD.dbml), arti tabel dan kolom, serta pedoman query untuk data inti dan layanan Konsultan, termasuk order, assignment, komentar, dan working copy. |
+| [05-Architecture](./05-Architecture/) | [Arsitektur sistem](./05-Architecture/System-Architecture.md), teknologi, kontrak API, AI, pembuatan dokumen, serta desain teknis konsultasi dan viewer komentar. |
+| [06-Security-Audit](./06-Security-Audit/) | Materi dan alat bantu audit keamanan untuk autentikasi, isolasi data, akses Konsultan, integrasi, deployment, serta temuan. Folder ini bukan alur penggunaan pelanggan. |
 
 ## Referensi Utama
 
@@ -28,4 +21,6 @@ Folder ini merupakan dokumentasi lengkap dan mandiri untuk TP Docs With Consulta
 - [Consultant Workflow](./03-Business-Flow/09-Consultant-Workflow.md)
 - [Consultation Architecture](./05-Architecture/Consultation-Architecture.md)
 - [Document Review Architecture](./05-Architecture/Document-Review-Architecture.md)
+
+Urutan baca yang disarankan: PRD → Use Case → Business Flow → Database dan Architecture.
 

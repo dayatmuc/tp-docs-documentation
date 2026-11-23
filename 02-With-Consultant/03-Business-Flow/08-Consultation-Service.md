@@ -1,6 +1,5 @@
 # Consultation Service Business Flow
 
-Diskon event merupakan cabang opsional pada Review Konsultan TP dan Penyusunan Penuh. Harga FIXED dibekukan saat checkout. Untuk Penyusunan Penuh, Admin menetapkan harga awal quotation, sistem menerapkan event yang aktif saat quotation diterbitkan, lalu membekukan total sampai quotation berakhir. Tidak ada event berarti harga katalog atau quotation normal. Pembayaran dan refund memakai total snapshot.
 
 ## 1. Tujuan dan Batas Proses
 
@@ -40,6 +39,9 @@ Request konsultasi hanya dapat dibuat apabila:
 Kegagalan prasyarat tidak membuat order, payment, kuota revisi, atau akses Konsultan.
 
 ## 4. Flow Pemilihan Layanan
+
+Diskon event merupakan cabang opsional pada Review Konsultan TP dan Penyusunan Penuh. Harga FIXED dibekukan saat checkout. Untuk Penyusunan Penuh, Admin menetapkan harga awal quotation, sistem menerapkan event yang aktif saat quotation diterbitkan, lalu membekukan total sampai quotation berakhir. Tidak ada event berarti harga katalog atau quotation normal. Pembayaran dan refund memakai total snapshot.
+
 
 ```mermaid
 flowchart TD

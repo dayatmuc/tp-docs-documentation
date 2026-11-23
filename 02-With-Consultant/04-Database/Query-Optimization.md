@@ -1,7 +1,4 @@
 # Query Optimization dan Pencegahan N+1 — TP Docs
-## Query Diskon Event
-
-Ambil kandidat promo dalam satu query dengan indeks `(status, starts_at, ends_at)` dan target `(product_type, product_id)`; hitung potongan di service berdasarkan harga server dan pilih satu nilai terbesar (tie-break ID terkecil). Jangan melakukan query per kartu paket atau per item quotation. Ringkasan penggunaan dihitung agregat dari `discount_redemptions`, sedangkan reservasi checkout memiliki TTL dan locking atomik agar batas penggunaan tidak terlewati.
 
 ## 1. Tujuan
 
@@ -168,6 +165,11 @@ WHERE archived_at IS NULL;
 ```
 
 ## 7. Strategi Indeks
+
+### Query Diskon Event
+
+Ambil kandidat promo dalam satu query dengan indeks `(status, starts_at, ends_at)` dan target `(product_type, product_id)`; hitung potongan di service berdasarkan harga server dan pilih satu nilai terbesar (tie-break ID terkecil). Jangan melakukan query per kartu paket atau per item quotation. Ringkasan penggunaan dihitung agregat dari `discount_redemptions`, sedangkan reservasi checkout memiliki TTL dan locking atomik agar batas penggunaan tidak terlewati.
+
 
 ### 7.1 Prinsip
 

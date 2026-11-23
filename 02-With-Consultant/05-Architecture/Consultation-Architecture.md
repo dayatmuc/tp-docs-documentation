@@ -1,6 +1,5 @@
 # Consultation Architecture — TP Docs With Consultant
 
-Diskon konsultasi dihitung oleh DiscountPricingService NestJS dari harga katalog FIXED atau harga awal quotation Penyusunan Penuh. Consultation request menyimpan snapshot harga awal, potongan, total, dan event; konsultasi dibayar memakai total tersebut. Katalog jasa tidak berubah karena promosi.
 
 ## 1. Tujuan dan Cakupan
 
@@ -206,6 +205,9 @@ Authenticated session
 - Akses isi pelanggan di luar proses assignment tetap mengikuti aturan dukungan dan audit.
 
 ## 7. Price Integrity dan Service Versioning
+
+Diskon konsultasi dihitung oleh DiscountPricingService NestJS dari harga katalog FIXED atau harga awal quotation Penyusunan Penuh. Consultation request menyimpan snapshot harga awal, potongan, total, dan event; konsultasi dibayar memakai total tersebut. Katalog jasa tidak berubah karena promosi.
+
 
 ```mermaid
 sequenceDiagram

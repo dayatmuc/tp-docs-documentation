@@ -1,6 +1,5 @@
 # Use Case Karyawan — TP Docs (With Consultant)
 
-Karyawan yang berhak membeli jasa untuk dokumen tugasnya melihat harga normal atau satu diskon event aktif yang sesuai sebelum checkout. Tanpa event, harga normal berlaku. Karyawan tidak dapat membuat atau mengubah event.
 
 ## 1. Definisi Aktor Karyawan
 
@@ -82,6 +81,9 @@ flowchart TB
 ---
 
 ## Layanan Konsultasi pada Karyawan
+
+Karyawan yang berhak membeli jasa untuk dokumen tugasnya melihat harga normal atau satu diskon event aktif yang sesuai sebelum checkout. Tanpa event, harga normal berlaku. Karyawan tidak dapat membuat atau mengubah event.
+
 
 ```mermaid
 flowchart TB

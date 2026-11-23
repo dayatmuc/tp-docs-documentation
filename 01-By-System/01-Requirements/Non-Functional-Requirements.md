@@ -1,5 +1,4 @@
 # Non-Functional Requirements — TP Docs (By System)
-> Integritas diskon: perhitungan dan kelayakan event dilakukan di NestJS dengan waktu Asia/Jakarta, transaksi atomik untuk batas penggunaan, idempotensi webhook, dan audit setiap perubahan Admin. Harga dari browser tidak dipercaya; invoice, snapshot, histori, dan refund harus cocok dengan jumlah yang dibayar.
 
 Dokumen ini memuat kebutuhan nonfungsional, target layanan, keamanan, retensi, dan kompatibilitas TP Docs versi **By System**. Ringkasan produk tersedia pada [PRD](./PRD.md).
 
@@ -16,6 +15,9 @@ Dokumen ini memuat kebutuhan nonfungsional, target layanan, keamanan, retensi, d
 - Pemulihan backup diuji minimal setiap tiga bulan.
 
 ### 1.2 Keamanan Data
+
+**Integritas promosi.** Integritas diskon: perhitungan dan kelayakan event dilakukan di NestJS dengan waktu Asia/Jakarta, transaksi atomik untuk batas penggunaan, idempotensi webhook, dan audit setiap perubahan Admin. Harga dari browser tidak dipercaya; invoice, snapshot, histori, dan refund harus cocok dengan jumlah yang dibayar.
+
 
 - Data profil, NPWP, transaksi, keuangan, struktur kepemilikan, FAR, pembanding, dan dokumen diklasifikasikan sebagai **Data Rahasia Perusahaan**.
 - Seluruh komunikasi menggunakan TLS 1.2 atau versi yang lebih baru.

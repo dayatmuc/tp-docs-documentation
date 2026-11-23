@@ -1,5 +1,12 @@
 # Use Case Administrator — TP Docs (By System)
-## Diskon Event Opsional — UA-05.6
+
+## 1. Definisi Aktor Administrator
+
+Administrator memelihara portal, langganan, akun, keamanan, integrasi, dan siklus data platform SaaS. Administrator tidak mengelola anggota organisasi, tidak mengubah isi Local File, dan tidak mengambil alih pekerjaan perusahaan pelanggan. Setiap Administrator menggunakan akun pribadi, MFA, dan audit log. Tindakan berisiko tinggi memerlukan autentikasi ulang serta persetujuan Administrator kedua.
+
+## 2. Daftar Use Case — Administrator
+
+### Diskon Event Opsional — UA-05.6
 
 Di bawah UA-05, Administrator dapat membuat draft event, menentukan target produk, nilai persentase atau nominal, periode dan batas penggunaan opsional, lalu mengaktifkan, menonaktifkan, dan memantau pemakaian. UA-05.6.E1 menangani konfigurasi tidak valid. Setiap perubahan diaudit. Tanpa event aktif, harga normal berlaku.
 
@@ -13,12 +20,6 @@ flowchart LR
  E[UA-05.6.E1 Tidak valid] -. extend .-> D
 ~~~
 
-
-## 1. Definisi Aktor Administrator
-
-Administrator memelihara portal, langganan, akun, keamanan, integrasi, dan siklus data platform SaaS. Administrator tidak mengelola anggota organisasi, tidak mengubah isi Local File, dan tidak mengambil alih pekerjaan perusahaan pelanggan. Setiap Administrator menggunakan akun pribadi, MFA, dan audit log. Tindakan berisiko tinggi memerlukan autentikasi ulang serta persetujuan Administrator kedua.
-
-## 2. Daftar Use Case — Administrator
 
 ### 2.1 Visual Aktivitas Administrator
 
@@ -427,7 +428,7 @@ flowchart LR
 | UA-05.5.1     | └── _sub dari UA-05.5_       | Melihat Masa Aktif Langganan                                    | [Aktivitas melihat Masa Aktif Langganan]                                                   | [-]                                                                                                                       | [-]                                |
 | UA-05.5.2     | └── _sub dari UA-05.5_       | Melihat Histori Perubahan Paket dan Billing                     | [Aktivitas melihat Histori Perubahan Paket dan Billing]                                    | [-]                                                                                                                       | [-]                                |
 | UA-05.6 | └── _sub opsional dari UA-05_ | Mengelola Diskon Event | [Admin mengatur promo event; tanpa event berlaku harga normal] | UA-05.6.1 s/d UA-05.6.4 | UA-05.6.E1 |
-| UA-05.6.1 | └── _sub dari UA-05.6_ | Menentukan Target dan Nilai | [Paket, add-on, Enterprise/Custom, serta jasa Konsultan pada varian kedua; persentase atau nominal] | [-] | [-] |
+| UA-05.6.1 | └── _sub dari UA-05.6_ | Menentukan Target dan Nilai | [Paket, add-on, Enterprise/Custom; persentase atau nominal] | [-] | [-] |
 | UA-05.6.2 | └── _sub dari UA-05.6_ | Menentukan Periode dan Batas | [Waktu Asia/Jakarta dan batas penggunaan opsional] | [-] | [-] |
 | UA-05.6.3 | └── _sub dari UA-05.6_ | Mengaktifkan atau Menonaktifkan | [Berlaku hanya untuk transaksi baru; perubahan diaudit] | [-] | [-] |
 | UA-05.6.4 | └── _sub dari UA-05.6_ | Memantau Penggunaan | [Menampilkan redemption pembayaran berhasil] | [-] | [-] |

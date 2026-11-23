@@ -1,5 +1,4 @@
 # PRODUCT REQUIREMENTS DOCUMENT (PRD)
-> Diskon event bersifat opsional. Administrator dapat mengaktifkan promosi untuk paket, add-on, dan quotation; varian Konsultan juga mencakup jasa konsultasi. Tanpa event yang cocok, harga normal berlaku. Total pembayaran dibekukan dan refund mengacu pada jumlah yang dibayar.
 
 ## TP Docs — Transfer Pricing Documentation System (By System)
 
@@ -171,6 +170,11 @@ Detail kebutuhan nonfungsional tersedia pada [Non-Functional Requirements](./Non
 - [Use Case Diagram](../02-Use-Case/Use-Case-Diagram.drawio)
 
 ## 8. Business Rules
+
+### Aturan promosi
+
+Diskon event bersifat opsional. Administrator dapat mengaktifkan promosi untuk paket, add-on, dan quotation; Tanpa event yang cocok, harga normal berlaku. Total pembayaran dibekukan dan refund mengacu pada jumlah yang dibayar.
+
 
 Diskon event bersifat opsional. Tanpa event aktif yang sesuai, harga katalog atau quotation normal berlaku. Administrator menentukan sasaran, nilai, periode, dan batas penggunaan; satu transaksi hanya menerima potongan terbesar yang memenuhi syarat. Harga akhir dibekukan saat checkout atau quotation diterbitkan dan refund mengacu pada nilai yang dibayar.
 

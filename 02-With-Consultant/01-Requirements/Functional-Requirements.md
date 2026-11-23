@@ -1,5 +1,4 @@
 # Functional Requirements — TP Docs (With Consultant)
-> Kebutuhan diskon event: Admin dapat mengelola promosi opsional (UA-05.6); User Induk melihat dan membayar harga normal atau promo (UI-08.1, UI-08.6). Sistem memilih satu potongan terbesar yang memenuhi syarat, menyimpan snapshot harga, dan tidak menghitung ulang transaksi lama. Pada varian Konsultan, harga jasa juga mengikuti event yang sesuai.
 
 Dokumen ini memuat kebutuhan fungsional terperinci untuk TP Docs versi **With Consultant**. Ringkasan dan konteks produk tersedia pada [PRD](./PRD.md), sedangkan alur setiap aktor tersedia pada [Use Case User Induk](../02-Use-Case/Organization-Owner.md), [Use Case Karyawan](../02-Use-Case/Employee.md), [Use Case Konsultan](../02-Use-Case/Consultant.md), dan [Use Case Administrator](../02-Use-Case/Admin.md).
 
@@ -60,3 +59,4 @@ Kebutuhan inti TP Docs telah dijelaskan pada bagian sebelumnya. Tabel berikut me
 - Delivery gagal jika belum ada comment/draft yang dipublikasikan.
 - Resubmission gagal jika revisi order habis.
 - Akses Konsultan berakhir setelah completion, revoke, atau reassignment.
+| FR-12 | Admin mengelola promosi opsional; User Induk melihat harga normal atau promo, termasuk untuk jasa konsultasi. Sistem memilih satu potongan terbesar yang memenuhi syarat, membekukan harga saat transaksi, dan mempertahankan harga transaksi lama. | UI-08.1, UI-08.6, UA-05.6 |

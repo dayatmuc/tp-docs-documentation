@@ -1,5 +1,4 @@
 # Functional Requirements — TP Docs (By System)
-> Kebutuhan diskon event: Admin dapat mengelola promosi opsional (UA-05.6); User Induk melihat dan membayar harga normal atau promo (UI-08.1, UI-08.6). Sistem memilih satu potongan terbesar yang memenuhi syarat, menyimpan snapshot harga, dan tidak menghitung ulang transaksi lama. Pada varian Konsultan, harga jasa juga mengikuti event yang sesuai.
 
 Dokumen ini memuat kebutuhan fungsional terperinci untuk TP Docs versi **By System**. Ringkasan dan konteks produk tersedia pada [PRD](./PRD.md), sedangkan alur setiap aktor tersedia pada [Use Case User Induk](../02-Use-Case/Organization-Owner.md), [Use Case Karyawan](../02-Use-Case/Employee.md), dan [Use Case Administrator](../02-Use-Case/Admin.md).
 
@@ -18,3 +17,4 @@ Dokumen ini memuat kebutuhan fungsional terperinci untuk TP Docs versi **By Syst
 | FR-09 | Sistem menyediakan history, duplikasi dokumen, pustaka pembanding, dan Settings                                                                                                                            | UI-06, UI-07, UI-09        |
 | FR-10 | Sistem mengirim notifikasi dan mencatat aktivitas penting, ekspor, serta penghapusan data                                                                                                                  | UI-01, UI-08, UI-09, UK-01 |
 | FR-11 | Sistem menyediakan portal dan dashboard operasional, maintenance mode, pengaturan dasar, billing, pengelolaan akun, pengajuan Enterprise/Custom, keamanan, integrasi, backup, dan audit bagi Administrator | UA-01 s/d UA-09            |
+| FR-12 | Admin mengelola promosi opsional; User Induk melihat harga normal atau promo. Sistem memilih satu potongan terbesar yang memenuhi syarat, membekukan harga saat transaksi, dan mempertahankan harga transaksi lama. | UI-08.1, UI-08.6, UA-05.6 |

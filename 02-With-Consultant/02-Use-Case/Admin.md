@@ -1,5 +1,12 @@
 # Use Case Administrator — TP Docs (With Consultant)
-## Diskon Event Opsional — UA-05.6
+
+## 1. Definisi Aktor Administrator
+
+Administrator memelihara portal, langganan, akun, keamanan, integrasi, dan siklus data platform SaaS. Administrator tidak mengelola anggota organisasi, tidak mengubah isi Local File, dan tidak mengambil alih pekerjaan perusahaan pelanggan. Setiap Administrator menggunakan akun pribadi, MFA, dan audit log. Tindakan berisiko tinggi memerlukan autentikasi ulang serta persetujuan Administrator kedua.
+
+## 2. Daftar Use Case — Administrator
+
+### Diskon Event Opsional — UA-05.6
 
 Di bawah UA-05, Administrator dapat membuat draft event, menentukan target produk, nilai persentase atau nominal, periode dan batas penggunaan opsional, lalu mengaktifkan, menonaktifkan, dan memantau pemakaian. UA-05.6.E1 menangani konfigurasi tidak valid. Setiap perubahan diaudit. Tanpa event aktif, harga normal berlaku.
 
@@ -13,12 +20,6 @@ flowchart LR
  E[UA-05.6.E1 Tidak valid] -. extend .-> D
 ~~~
 
-
-## 1. Definisi Aktor Administrator
-
-Administrator memelihara portal, langganan, akun, keamanan, integrasi, dan siklus data platform SaaS. Administrator tidak mengelola anggota organisasi, tidak mengubah isi Local File, dan tidak mengambil alih pekerjaan perusahaan pelanggan. Setiap Administrator menggunakan akun pribadi, MFA, dan audit log. Tindakan berisiko tinggi memerlukan autentikasi ulang serta persetujuan Administrator kedua.
-
-## 2. Daftar Use Case — Administrator
 
 ### 2.1 Visual Aktivitas Administrator
 

@@ -1,5 +1,4 @@
 # Technology Stack dan Payment Gateway TP Docs
-> Komponen diskon: modul NestJS `DiscountPricingService`, tabel PostgreSQL kampanye/target/pemakaian, cache hanya untuk tampilan yang boleh kedaluwarsa, dan transaksi atomik untuk checkout. Tidak ada SDK promo terpisah. Zona waktu event `Asia/Jakarta`; uang disimpan dalam minor unit. Harga reguler tetap tersedia ketika tidak ada promo.
 
 ## 1. Informasi Dokumen
 
@@ -369,6 +368,11 @@ Frontend tidak boleh menganggap route yang tersembunyi sebagai perlindungan. Req
 ---
 
 ## 8. Backend — NestJS Modular Monolith
+
+### Komponen promosi
+
+Komponen diskon: modul NestJS `DiscountPricingService`, tabel PostgreSQL kampanye/target/pemakaian, cache hanya untuk tampilan yang boleh kedaluwarsa, dan transaksi atomik untuk checkout. Tidak ada SDK promo terpisah. Zona waktu event `Asia/Jakarta`; uang disimpan dalam minor unit. Harga reguler tetap tersedia ketika tidak ada promo.
+
 
 ### 8.1 Struktur modul
 

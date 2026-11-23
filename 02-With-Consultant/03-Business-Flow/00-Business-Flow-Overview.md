@@ -1,18 +1,4 @@
 # Business Flow Overview — TP Docs (With Consultant)
-## Cabang Harga Opsional
-
-~~~mermaid
-flowchart LR
- P[Pilih produk] --> E{Event aktif sesuai?}
- E -->|Tidak| N[Harga normal]
- E -->|Ya| D[Satu potongan terbesar]
- N --> S[Snapshot checkout atau quotation]
- D --> S
- S --> B[Pembayaran]
-~~~
-
-Berlaku pada paket, upgrade, perpanjangan, add-on, Enterprise/Custom, dan jasa Konsultan pada varian kedua. Quotation membekukan promo saat diterbitkan.
-
 
 ## 1. Tujuan
 
@@ -31,6 +17,21 @@ Overview hanya menampilkan proses utama, titik keputusan, hasil alternatif, dan 
 | Garis putus-putus        | Handoff atau pembaruan status lintas aktor |
 
 ## 3. Overview Business Flow — User Induk
+
+### Cabang Harga Opsional
+
+~~~mermaid
+flowchart LR
+ P[Pilih produk] --> E{Event aktif sesuai?}
+ E -->|Tidak| N[Harga normal]
+ E -->|Ya| D[Satu potongan terbesar]
+ N --> S[Snapshot checkout atau quotation]
+ D --> S
+ S --> B[Pembayaran]
+~~~
+
+Berlaku pada paket, upgrade, perpanjangan, add-on, Enterprise/Custom, dan jasa Konsultan. Quotation membekukan promo saat diterbitkan.
+
 
 Alur User Induk dibaca secara berurutan: **login dan penyusunan Local File**, dilanjutkan dengan **langganan dan multi-pengguna**, kemudian **Enterprise/Custom** apabila kebutuhan perusahaan tidak dapat dipenuhi paket reguler.
 

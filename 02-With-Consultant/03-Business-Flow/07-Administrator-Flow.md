@@ -1,8 +1,4 @@
 # Administrator Business Flow — TP Docs (With Consultant)
-## Mengelola Event Diskon
-
-Admin membuat draft, memvalidasi target, nilai, periode, dan batas, lalu mengaktifkannya. Dashboard billing menampilkan status dan pemakaian. Penonaktifan hanya memengaruhi transaksi baru; snapshot checkout dan quotation yang telah terbit tidak diubah. Semua perubahan masuk audit log.
-
 
 > Pemeliharaan file mencakup status malware, karantina, retensi, serta bukti penghapusan. Backup dan uji restore PostgreSQL harus mencakup metadata maupun chunk biner—termasuk review dan delivery Konsultan—serta memverifikasi checksum file hasil pemulihan.
 
@@ -223,6 +219,11 @@ flowchart TD
 Feature flag, timeout, rate limit, konfigurasi infrastruktur, dan rollback tidak dikelola melalui flow Administrator ini.
 
 ## 7. UA-05 — Mengelola Paket, Langganan, dan Billing
+
+### Mengelola Event Diskon
+
+Admin membuat draft, memvalidasi target, nilai, periode, dan batas, lalu mengaktifkannya. Dashboard billing menampilkan status dan pemakaian. Penonaktifan hanya memengaruhi transaksi baru; snapshot checkout dan quotation yang telah terbit tidak diubah. Semua perubahan masuk audit log.
+
 
 ### 7.1 Katalog, Kuota, Pembayaran, dan Koreksi
 

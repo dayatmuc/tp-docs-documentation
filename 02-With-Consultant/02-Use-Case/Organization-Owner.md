@@ -1,5 +1,12 @@
 # Use Case User Induk — TP Docs (With Consultant)
-## Diskon Event Opsional pada UI-08
+
+## 1. Definisi Aktor User Induk
+
+**User Induk** adalah pengguna pertama yang mendaftarkan perusahaan dan menjadi pemilik operasional organisasi pada TP Docs. User Induk mengelola profil perusahaan, langganan, pembayaran, kuota, anggota, penugasan dokumen, seluruh data perusahaan, serta permintaan ekspor dan penghapusan data.
+
+## 2. Daftar Use Case — User Induk
+
+### Diskon Event Opsional pada UI-08
 
 User Induk melihat harga normal untuk paket, add-on, dan quotation. Jika event aktif sesuai produk, sistem menampilkan harga awal, satu potongan terbesar, dan total sebelum pembayaran. Harga dibekukan pada checkout atau penerbitan quotation. Tanpa event tidak ada baris diskon. Varian Konsultan juga menerapkan aturan ini pada jasa konsultasi.
 
@@ -13,12 +20,6 @@ flowchart LR
  D --> C
 ~~~
 
-
-## 1. Definisi Aktor User Induk
-
-**User Induk** adalah pengguna pertama yang mendaftarkan perusahaan dan menjadi pemilik operasional organisasi pada TP Docs. User Induk mengelola profil perusahaan, langganan, pembayaran, kuota, anggota, penugasan dokumen, seluruh data perusahaan, serta permintaan ekspor dan penghapusan data.
-
-## 2. Daftar Use Case — User Induk
 
 Struktur use case di bawah merefleksikan diagram sistem TP Docs langsung dari interaksi User Induk (tanpa pemisahan modul), terpusat pada hierarki relasi `<<include>>` dan `<<extend>>`.
 

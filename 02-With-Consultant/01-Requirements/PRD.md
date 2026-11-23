@@ -1,5 +1,4 @@
 # PRODUCT REQUIREMENTS DOCUMENT (PRD)
-> Diskon event bersifat opsional. Administrator dapat mengaktifkan promosi untuk paket, add-on, dan quotation; varian Konsultan juga mencakup jasa konsultasi. Tanpa event yang cocok, harga normal berlaku. Total pembayaran dibekukan dan refund mengacu pada jumlah yang dibayar.
 
 ## TP Docs — Transfer Pricing Documentation System (With Consultant)
 
@@ -180,6 +179,11 @@ Detail kebutuhan nonfungsional tersedia pada [Non-Functional Requirements](./Non
 - [Use Case Diagram](../02-Use-Case/Use-Case-Diagram.drawio)
 
 ## 8. Business Rules
+
+### Aturan promosi
+
+Diskon event bersifat opsional. Administrator dapat mengaktifkan promosi untuk paket, add-on, dan quotation; varian Konsultan juga mencakup jasa konsultasi. Tanpa event yang cocok, harga normal berlaku. Total pembayaran dibekukan dan refund mengacu pada jumlah yang dibayar.
+
 
 1. Setiap dokumen, data, histori perubahan, dan hasil generate dimiliki oleh organisasi yang membuatnya.
 2. User Induk dapat mengelola seluruh dokumen, anggota, langganan, dan data perusahaan dalam organisasinya.

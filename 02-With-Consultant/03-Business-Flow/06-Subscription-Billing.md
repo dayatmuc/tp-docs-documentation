@@ -1,21 +1,4 @@
 # Subscription and Billing Business Flow — TP Docs (With Consultant)
-## Diskon Event Opsional
-
-Admin mengatur sasaran, nilai, periode Asia/Jakarta, dan batas penggunaan opsional. Saat checkout paket baru, upgrade, perpanjangan, atau add-on, sistem memilih satu diskon terbesar yang aktif dan sesuai. Jika tidak ada, harga katalog berlaku. Quotation Enterprise/Custom membekukan potongan saat diterbitkan; invoice mengikuti total snapshot hingga quotation kedaluwarsa. Payment gagal melepas reservasi setelah TTL; redemption dicatat sekali saat PAID. Refund mengacu pada jumlah dibayar. Free/Trial tidak mendapat diskon.
-
-~~~mermaid
-flowchart TD
- P[Harga normal] --> E{Event aktif sesuai?}
- E -->|Tidak| N[Harga normal]
- E -->|Ya| D[Satu diskon terbesar]
- N --> S[Snapshot harga]
- D --> S
- S --> X[Checkout atau quotation]
- X --> V{Pembayaran berhasil?}
- V -->|Ya| R[Catat penggunaan promo]
- V -->|Tidak| F[Lepas reservasi saat TTL]
-~~~
-
 
 ## 1. Tujuan dan Cakupan
 
@@ -364,6 +347,24 @@ User Induk dapat melihat:
 Perubahan katalog atau koreksi kuota oleh Administrator harus tercermin pada tampilan dan histori User Induk. Laporan atau histori tidak menampilkan kredensial payment gateway maupun data pembayaran mentah.
 
 ## 13. Aturan Bisnis
+
+### Diskon Event Opsional
+
+Admin mengatur sasaran, nilai, periode Asia/Jakarta, dan batas penggunaan opsional. Saat checkout paket baru, upgrade, perpanjangan, atau add-on, sistem memilih satu diskon terbesar yang aktif dan sesuai. Jika tidak ada, harga katalog berlaku. Quotation Enterprise/Custom membekukan potongan saat diterbitkan; invoice mengikuti total snapshot hingga quotation kedaluwarsa. Payment gagal melepas reservasi setelah TTL; redemption dicatat sekali saat PAID. Refund mengacu pada jumlah dibayar. Free/Trial tidak mendapat diskon.
+
+~~~mermaid
+flowchart TD
+ P[Harga normal] --> E{Event aktif sesuai?}
+ E -->|Tidak| N[Harga normal]
+ E -->|Ya| D[Satu diskon terbesar]
+ N --> S[Snapshot harga]
+ D --> S
+ S --> X[Checkout atau quotation]
+ X --> V{Pembayaran berhasil?}
+ V -->|Ya| R[Catat penggunaan promo]
+ V -->|Tidak| F[Lepas reservasi saat TTL]
+~~~
+
 
 - Hanya User Induk yang dapat membeli paket, add-on, atau mengajukan refund.
 - User Induk tetap menjadi pemilik organisasi pada Free/Trial dan Basic, tetapi tidak dapat mengundang Karyawan.
