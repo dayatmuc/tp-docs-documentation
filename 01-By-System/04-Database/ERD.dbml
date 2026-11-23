@@ -1,0 +1,1601 @@
+Project tp_docs_by_system {
+  database_type: 'PostgreSQL'
+  Note: 'Logical ERD TP Docs By System. UUID dibuat aplikasi atau gen_random_uuid(). Semua tabel tenant wajib difilter menggunakan organization_id.'
+}
+
+Enum user_status {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+Enum membership_role {
+  OWNER
+  EMPLOYEE
+}
+
+Enum platform_role {
+  ADMINISTRATOR
+}
+
+Enum membership_status {
+  PENDING
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+Enum invitation_status {
+  PENDING
+  USED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+Enum plan_code {
+  FREE
+  BASIC
+  PROFESSIONAL
+  ENTERPRISE_CUSTOM
+}
+
+Enum subscription_status {
+  PENDING
+  ACTIVE
+  PAST_DUE
+  EXPIRED
+  CANCELLED
+  FROZEN
+}
+
+Enum payment_status {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  EXPIRED
+  CANCELLED
+  REFUNDED
+}
+
+Enum payment_session_status {
+  CREATED
+  ACTIVE
+  REQUIRES_ACTION
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+  CANCELLED
+}
+
+Enum payment_dispute_status {
+  ACTION_REQUIRED
+  UNDER_REVIEW
+  WON
+  LOST
+  ACCEPTED
+  CLOSED
+}
+
+Enum payment_purpose {
+  SUBSCRIPTION
+  UPGRADE
+  DOCUMENT_ADDON
+  SEAT_ADDON
+  CUSTOM_PLAN
+}
+
+Enum refund_status {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PROCESSING
+  REFUNDED
+  FAILED
+}
+
+Enum custom_request_status {
+  SUBMITTED
+  UNDER_REVIEW
+  REVISION_REQUESTED
+  QUOTED
+  AWAITING_PAYMENT
+  ACTIVE
+  REJECTED
+  CLOSED
+}
+
+Enum local_file_status {
+  DRAFT
+  IN_PROGRESS
+  READY_TO_GENERATE
+  GENERATING
+  GENERATED
+  ARCHIVED
+}
+
+Enum section_status {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+  NEEDS_REVISION
+}
+
+Enum transaction_scope {
+  AFFILIATE
+  INDEPENDENT
+}
+
+Enum ai_generation_status {
+  QUEUED
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+  ACCEPTED
+}
+
+Enum ai_phase_category {
+  INPUT
+  PROCESS
+  CONTROL
+  OUTPUT
+}
+
+Enum document_generation_status {
+  QUEUED
+  RENDERING_DOCX
+  VALIDATING_DOCX
+  CONVERTING_PDF
+  VALIDATING_PDF
+  SUCCEEDED
+  FAILED
+}
+
+Enum transaction_import_status {
+  UPLOADED
+  VALIDATING
+  VALID
+  INVALID
+  IMPORTING
+  IMPORTED
+  FAILED
+}
+
+Enum file_extraction_status {
+  QUEUED
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+}
+
+Enum file_scan_status {
+  PENDING
+  CLEAN
+  INFECTED
+  FAILED
+  QUARANTINED
+}
+
+Enum file_content_status {
+  UPLOADING
+  COMPLETE
+  CORRUPTED
+  DELETED
+}
+
+Enum quota_type {
+  DOCUMENT
+  SEAT
+}
+
+Enum quota_event_type {
+  GRANT
+  CONSUME
+  RELEASE
+  ADJUSTMENT
+  EXPIRE
+}
+
+Enum quotation_status {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+Table users {
+  id uuid [pk]
+  email varchar(320) [not null, unique]
+  full_name varchar(200) [not null]
+  phone varchar(40)
+  status user_status [not null, default: 'PENDING_VERIFICATION']
+  email_verified_at timestamptz
+  locale varchar(10) [not null, default: 'id-ID']
+  timezone varchar(64) [not null, default: 'Asia/Jakarta']
+  last_login_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  deleted_at timestamptz
+
+  indexes {
+    (status, created_at) [name: 'idx_users_status_created']
+  }
+}
+
+Table user_passwords {
+  user_id uuid [pk, ref: > users.id]
+  password_hash text [not null]
+  algorithm varchar(32) [not null]
+  changed_at timestamptz [not null]
+  must_change boolean [not null, default: false]
+}
+
+Table platform_user_roles {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  role platform_role [not null]
+  granted_by_user_id uuid [ref: > users.id]
+  granted_at timestamptz [not null]
+  revoked_at timestamptz
+
+  indexes {
+    (user_id, role) [unique, name: 'uq_platform_user_role']
+    (role, revoked_at) [name: 'idx_platform_roles_active']
+  }
+}
+
+Table mfa_methods {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  method varchar(32) [not null]
+  secret_ciphertext text
+  is_primary boolean [not null, default: false]
+  verified_at timestamptz
+  revoked_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (user_id, revoked_at) [name: 'idx_mfa_user_active']
+  }
+}
+
+Table user_sessions {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  refresh_token_hash text [not null, unique]
+  ip_hash varchar(128)
+  user_agent_hash varchar(128)
+  expires_at timestamptz [not null]
+  revoked_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (user_id, revoked_at, expires_at) [name: 'idx_sessions_user_active']
+    (expires_at) [name: 'idx_sessions_expiry']
+  }
+}
+
+Table auth_tokens {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  purpose varchar(40) [not null]
+  token_hash varchar(128) [not null, unique]
+  expires_at timestamptz [not null]
+  used_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (user_id, purpose, expires_at) [name: 'idx_auth_tokens_user_purpose']
+  }
+}
+
+Table organizations {
+  id uuid [pk]
+  legal_name varchar(255) [not null]
+  slug varchar(120) [not null, unique]
+  status varchar(32) [not null, default: 'ACTIVE']
+  created_by_user_id uuid [not null, ref: > users.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  deleted_at timestamptz
+
+  indexes {
+    (status, created_at) [name: 'idx_organizations_status_created']
+  }
+}
+
+Table organization_profiles {
+  organization_id uuid [pk, ref: > organizations.id]
+  npwp_ciphertext text
+  business_field varchar(255)
+  address text
+  phone varchar(40)
+  country_code char(2) [not null, default: 'ID']
+  data_region varchar(64)
+  updated_by_user_id uuid [ref: > users.id]
+  updated_at timestamptz [not null]
+}
+
+Table memberships {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  user_id uuid [not null, ref: > users.id]
+  role membership_role [not null]
+  status membership_status [not null]
+  joined_at timestamptz
+  revoked_at timestamptz
+  revoked_by_user_id uuid [ref: > users.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, user_id) [unique, name: 'uq_membership_org_user']
+    (organization_id, status, role) [name: 'idx_membership_org_status_role']
+    (user_id, status) [name: 'idx_membership_user_status']
+  }
+}
+
+Table invitations {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  email varchar(320) [not null]
+  invited_user_id uuid [ref: > users.id]
+  invited_by_user_id uuid [not null, ref: > users.id]
+  token_hash varchar(128) [not null, unique]
+  status invitation_status [not null, default: 'PENDING']
+  expires_at timestamptz [not null]
+  responded_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, status, created_at) [name: 'idx_invitations_org_status']
+    (email, status) [name: 'idx_invitations_email_status']
+  }
+}
+
+Table plans {
+  id uuid [pk]
+  code plan_code [not null, unique]
+  name varchar(100) [not null]
+  description text
+  duration_months int
+  included_documents int
+  included_seats int
+  allows_document_addon boolean [not null, default: false]
+  allows_seat_addon boolean [not null, default: false]
+  allows_pdf boolean [not null, default: false]
+  is_custom boolean [not null, default: false]
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table plan_prices {
+  id uuid [pk]
+  plan_id uuid [not null, ref: > plans.id]
+  currency char(3) [not null, default: 'IDR']
+  amount_minor bigint [not null]
+  valid_from timestamptz [not null]
+  valid_until timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (plan_id, currency, valid_from) [name: 'idx_plan_prices_lookup']
+  }
+}
+
+Enum discount_kind {
+  PERCENT
+  FIXED_AMOUNT
+}
+
+Enum discount_campaign_status {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+Table discount_campaigns {
+  id uuid [pk]
+  name varchar(160) [not null]
+  status discount_campaign_status [not null, default: 'DRAFT']
+  kind discount_kind [not null]
+  value numeric(20,2) [not null]
+  currency char(3)
+  starts_at timestamptz [not null]
+  ends_at timestamptz [not null]
+  usage_limit int
+  created_by_admin_id uuid [not null, ref: > users.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  indexes { (status, starts_at, ends_at) [name: 'idx_discount_campaigns_active'] }
+}
+
+Table discount_campaign_targets {
+  id uuid [pk]
+  campaign_id uuid [not null, ref: > discount_campaigns.id]
+  product_type varchar(40) [not null]
+  product_id uuid
+  indexes { (product_type, product_id) [name: 'idx_discount_target_lookup'] }
+}
+
+Table discount_redemptions {
+  id uuid [pk]
+  campaign_id uuid [not null, ref: > discount_campaigns.id]
+  payment_id uuid [not null, unique, ref: > payments.id]
+  organization_id uuid [not null, ref: > organizations.id]
+  discount_amount_minor bigint [not null]
+  redeemed_at timestamptz [not null]
+  indexes { (campaign_id, redeemed_at) [name: 'idx_discount_redemptions_count'] }
+}
+
+Table subscriptions {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  plan_id uuid [not null, ref: > plans.id]
+  status subscription_status [not null]
+  start_at timestamptz
+  end_at timestamptz
+  document_quota int [not null, default: 0]
+  seat_quota int [not null, default: 1]
+  custom_terms jsonb
+  activated_by_payment_id uuid
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, status, end_at) [name: 'idx_subscriptions_org_status']
+    (plan_id, status) [name: 'idx_subscriptions_plan_status']
+  }
+}
+
+Table subscription_document_addons {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  subscription_id uuid [not null, ref: > subscriptions.id]
+  payment_id uuid
+  quantity int [not null]
+  used_quantity int [not null, default: 0]
+  unit_price_minor bigint [not null]
+  valid_until timestamptz [not null]
+  created_at timestamptz [not null]
+
+  indexes {
+    (subscription_id, valid_until) [name: 'idx_document_addons_subscription']
+  }
+}
+
+Table subscription_seat_addons {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  subscription_id uuid [not null, ref: > subscriptions.id]
+  payment_id uuid
+  quantity int [not null]
+  prorated_amount_minor bigint [not null]
+  valid_until timestamptz [not null]
+  created_at timestamptz [not null]
+
+  indexes {
+    (subscription_id, valid_until) [name: 'idx_seat_addons_subscription']
+  }
+}
+
+Table quota_ledger {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  subscription_id uuid [not null, ref: > subscriptions.id]
+  quota_type quota_type [not null]
+  event_type quota_event_type [not null]
+  quantity int [not null]
+  reference_type varchar(40) [not null]
+  reference_id uuid [not null]
+  idempotency_key varchar(128) [not null, unique]
+  occurred_at timestamptz [not null]
+  created_by_user_id uuid [ref: > users.id]
+
+  indexes {
+    (organization_id, quota_type, occurred_at) [name: 'idx_quota_ledger_org_type']
+    (subscription_id, quota_type, occurred_at) [name: 'idx_quota_ledger_subscription_type']
+  }
+}
+
+Table payment_provider_customers {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  provider varchar(40) [not null, default: 'XENDIT']
+  provider_customer_id varchar(160) [not null]
+  reference_id varchar(160) [not null]
+  customer_type varchar(24) [not null, default: 'BUSINESS']
+  country char(2) [not null, default: 'ID']
+  sync_status varchar(32) [not null]
+  last_synced_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, provider) [unique, name: 'uq_provider_customer_org']
+    (provider, provider_customer_id) [unique, name: 'uq_provider_customer_id']
+    (provider, reference_id) [unique, name: 'uq_provider_customer_reference']
+  }
+}
+
+Table payments {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  provider_customer_id uuid [ref: > payment_provider_customers.id]
+  subscription_id uuid [ref: > subscriptions.id]
+  initiated_by_user_id uuid [not null, ref: > users.id]
+  purpose payment_purpose [not null]
+  provider varchar(40) [not null]
+  reference_id varchar(160) [not null, unique]
+  provider_payment_id varchar(160) [unique]
+  status payment_status [not null, default: 'PENDING']
+  currency char(3) [not null]
+  amount_minor bigint [not null]
+  original_amount_minor bigint [not null]
+  discount_amount_minor bigint [not null, default: 0]
+  discount_campaign_id uuid [ref: > discount_campaigns.id]
+  idempotency_key varchar(128) [not null, unique]
+  paid_at timestamptz
+  expires_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, status, created_at) [name: 'idx_payments_org_status_created']
+    (provider, provider_payment_id) [name: 'idx_payments_provider_id']
+  }
+}
+
+Table payment_sessions {
+  id uuid [pk]
+  payment_id uuid [not null, ref: > payments.id]
+  provider varchar(40) [not null, default: 'XENDIT']
+  provider_session_id varchar(160) [not null]
+  provider_payment_request_id varchar(160)
+  provider_payment_id varchar(160)
+  reference_id varchar(160) [not null]
+  session_type varchar(24) [not null, default: 'PAY']
+  mode varchar(32) [not null, default: 'PAYMENT_LINK']
+  capture_method varchar(24) [not null, default: 'AUTOMATIC']
+  country char(2) [not null, default: 'ID']
+  currency char(3) [not null]
+  amount_minor bigint [not null]
+  status payment_session_status [not null, default: 'CREATED']
+  payment_link_url text
+  success_return_url text [not null]
+  cancel_return_url text [not null]
+  expires_at timestamptz
+  provider_updated_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (provider, provider_session_id) [unique, name: 'uq_payment_session_provider_id']
+    (provider, reference_id) [unique, name: 'uq_payment_session_reference']
+    (payment_id, created_at) [name: 'idx_payment_sessions_payment']
+    (status, expires_at) [name: 'idx_payment_sessions_status_expiry']
+  }
+}
+
+Table payment_webhook_events {
+  id uuid [pk]
+  provider varchar(40) [not null]
+  provider_event_id varchar(160) [not null]
+  event_type varchar(80) [not null]
+  deduplication_key varchar(255) [not null]
+  provider_resource_id varchar(160)
+  provider_status varchar(64)
+  provider_updated_at timestamptz
+  signature_valid boolean [not null]
+  payload_hash varchar(128) [not null]
+  received_at timestamptz [not null]
+  processed_at timestamptz
+  processing_error_code varchar(80)
+
+  indexes {
+    (provider, provider_event_id) [name: 'idx_payment_webhook_provider_event']
+    (provider, deduplication_key) [unique, name: 'uq_payment_webhook_dedupe']
+    (provider, provider_resource_id, received_at) [name: 'idx_payment_webhook_resource']
+    (processed_at, received_at) [name: 'idx_payment_webhook_processing']
+  }
+}
+
+Table refunds {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  payment_id uuid [not null, ref: > payments.id]
+  requested_by_user_id uuid [not null, ref: > users.id]
+  reviewed_by_admin_id uuid [ref: > users.id]
+  status refund_status [not null, default: 'SUBMITTED']
+  reason_category varchar(80) [not null]
+  reason_text text [not null]
+  evidence_file_id uuid
+  requested_amount_minor bigint [not null]
+  approved_amount_minor bigint
+  provider_refund_id varchar(160) [unique]
+  provider_status varchar(40)
+  provider_failure_code varchar(80)
+  provider_updated_at timestamptz
+  access_adjusted_at timestamptz
+  submitted_at timestamptz [not null]
+  resolved_at timestamptz
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, status, submitted_at) [name: 'idx_refunds_org_status']
+    (payment_id, status) [name: 'idx_refunds_payment_status']
+  }
+}
+
+Table payment_disputes {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  payment_id uuid [not null, ref: > payments.id]
+  provider varchar(40) [not null, default: 'XENDIT']
+  provider_dispute_id varchar(160) [not null]
+  reference_id varchar(160)
+  status payment_dispute_status [not null]
+  status_reason varchar(120)
+  channel_code varchar(80)
+  currency char(3) [not null]
+  amount_minor bigint [not null]
+  due_at timestamptz
+  action_required_at timestamptz
+  provider_updated_at timestamptz [not null]
+  resolved_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (provider, provider_dispute_id) [unique, name: 'uq_payment_dispute_provider_id']
+    (organization_id, status, due_at) [name: 'idx_payment_disputes_org_status_due']
+    (payment_id, created_at) [name: 'idx_payment_disputes_payment']
+  }
+}
+
+Table payment_dispute_evidences {
+  id uuid [pk]
+  dispute_id uuid [not null, ref: > payment_disputes.id]
+  file_id uuid [ref: > files.id]
+  evidence_type varchar(80) [not null]
+  text_value text
+  provider_evidence_id varchar(160)
+  submitted_by_admin_id uuid [ref: > users.id]
+  submitted_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (dispute_id, created_at) [name: 'idx_dispute_evidences_dispute']
+  }
+}
+
+Table refund_approvals {
+  id uuid [pk]
+  refund_id uuid [not null, ref: > refunds.id]
+  administrator_id uuid [not null, ref: > users.id]
+  decision varchar(24) [not null]
+  reason text
+  decided_at timestamptz [not null]
+
+  indexes {
+    (refund_id, administrator_id) [unique, name: 'uq_refund_admin_approval']
+  }
+}
+
+Table custom_plan_requests {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  submitted_by_user_id uuid [not null, ref: > users.id]
+  ticket_number varchar(40) [not null, unique]
+  status custom_request_status [not null, default: 'SUBMITTED']
+  company_name varchar(255) [not null]
+  pic_name varchar(200) [not null]
+  pic_email varchar(320) [not null]
+  phone varchar(40) [not null]
+  entity_count int [not null]
+  estimated_users int [not null]
+  estimated_documents_per_year int [not null]
+  needs_multi_entity boolean [not null, default: false]
+  needs_sso boolean [not null, default: false]
+  requested_data_region varchar(64)
+  special_support text
+  additional_notes text
+  contact_consent_at timestamptz [not null]
+  submitted_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, status, submitted_at) [name: 'idx_custom_requests_org_status']
+    (status, submitted_at) [name: 'idx_custom_requests_admin_queue']
+  }
+}
+
+Table custom_plan_request_history {
+  id uuid [pk]
+  request_id uuid [not null, ref: > custom_plan_requests.id]
+  from_status custom_request_status
+  to_status custom_request_status [not null]
+  changed_by_user_id uuid [not null, ref: > users.id]
+  note text
+  created_at timestamptz [not null]
+
+  indexes {
+    (request_id, created_at) [name: 'idx_custom_request_history']
+  }
+}
+
+Table quotations {
+  id uuid [pk]
+  custom_plan_request_id uuid [not null, ref: > custom_plan_requests.id]
+  quotation_number varchar(40) [not null, unique]
+  status quotation_status [not null, default: 'DRAFT']
+  currency char(3) [not null]
+  total_amount_minor bigint [not null]
+  original_amount_minor bigint [not null]
+  discount_amount_minor bigint [not null, default: 0]
+  discount_campaign_id uuid [ref: > discount_campaigns.id]
+  valid_until timestamptz [not null]
+  document_quota int [not null]
+  seat_quota int [not null]
+  subscription_months int [not null]
+  terms text
+  created_by_admin_id uuid [not null, ref: > users.id]
+  accepted_by_user_id uuid [ref: > users.id]
+  accepted_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table quotation_items {
+  id uuid [pk]
+  quotation_id uuid [not null, ref: > quotations.id]
+  item_code varchar(80) [not null]
+  description varchar(255) [not null]
+  quantity int [not null]
+  unit_amount_minor bigint [not null]
+  total_amount_minor bigint [not null]
+  sort_order int [not null]
+
+  indexes {
+    (quotation_id, sort_order) [unique, name: 'uq_quotation_item_order']
+  }
+}
+
+Table withdrawals {
+  id uuid [pk]
+  requested_by_admin_id uuid [not null, ref: > users.id]
+  approved_by_admin_id uuid [ref: > users.id]
+  provider_payout_id varchar(160) [unique]
+  provider_reference_id varchar(160) [unique]
+  status varchar(32) [not null]
+  currency char(3) [not null]
+  amount_minor bigint [not null]
+  idempotency_key varchar(128) [not null, unique]
+  destination_account_hash varchar(128)
+  provider_failure_code varchar(80)
+  estimated_arrival_at timestamptz
+  requested_at timestamptz [not null]
+  processed_at timestamptz
+}
+
+Table files {
+  id uuid [pk]
+  organization_id uuid [ref: > organizations.id]
+  uploaded_by_user_id uuid [not null, ref: > users.id]
+  purpose varchar(80) [not null]
+  original_name varchar(255) [not null]
+  mime_type varchar(120) [not null]
+  size_bytes bigint [not null]
+  chunk_count int [not null, default: 0]
+  checksum_sha256 varchar(64) [not null]
+  content_status file_content_status [not null, default: 'UPLOADING']
+  scan_status file_scan_status [not null, default: 'PENDING']
+  content_completed_at timestamptz
+  scanned_at timestamptz
+  quarantined_at timestamptz
+  retention_until timestamptz
+  created_at timestamptz [not null]
+  deleted_at timestamptz
+
+  indexes {
+    (organization_id, purpose, created_at) [name: 'idx_files_org_purpose']
+    (scan_status, created_at) [name: 'idx_files_scan_queue']
+  }
+}
+
+Table file_blob_chunks {
+  // Konten maksimal 1 MiB per baris; maksimum 50 chunk/file ditegakkan migration dan service.
+  file_id uuid [not null, ref: > files.id]
+  chunk_index int [not null]
+  content bytea [not null]
+  size_bytes int [not null]
+  created_at timestamptz [not null]
+
+  indexes {
+    (file_id, chunk_index) [pk, name: 'pk_file_blob_chunks']
+    (file_id) [name: 'idx_file_blob_chunks_file']
+  }
+}
+
+Table local_files {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  created_by_user_id uuid [not null, ref: > users.id]
+  title varchar(255) [not null]
+  tax_year int [not null]
+  identity_hash varchar(128) [not null]
+  version int [not null, default: 1]
+  status local_file_status [not null, default: 'DRAFT']
+  characteristic varchar(120)
+  selected_tp_method varchar(40)
+  last_edited_by_user_id uuid [not null, ref: > users.id]
+  last_edited_at timestamptz [not null]
+  duplicated_from_local_file_id uuid [ref: > local_files.id]
+  duplicated_by_user_id uuid [ref: > users.id]
+  ready_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  archived_at timestamptz
+
+  indexes {
+    (organization_id, identity_hash) [unique, name: 'uq_local_file_identity']
+    (organization_id, tax_year, created_at) [name: 'idx_local_files_org_tax_year']
+    (organization_id, status, updated_at) [name: 'idx_local_files_org_status']
+  }
+}
+
+Table document_assignments {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  membership_id uuid [not null, ref: > memberships.id]
+  assigned_by_user_id uuid [not null, ref: > users.id]
+  assigned_at timestamptz [not null]
+  revoked_at timestamptz
+
+  indexes {
+    (local_file_id, membership_id) [unique, name: 'uq_document_assignment']
+    (membership_id, revoked_at, assigned_at) [name: 'idx_assignment_member_active']
+    (organization_id, local_file_id) [name: 'idx_assignment_tenant_document']
+  }
+}
+
+Table local_file_section_progress {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  section_code varchar(80) [not null]
+  status section_status [not null, default: 'NOT_STARTED']
+  completion_percent int [not null, default: 0]
+  validation_errors jsonb
+  updated_by_user_id uuid [not null, ref: > users.id]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, section_code) [unique, name: 'uq_local_file_section']
+    (organization_id, status, updated_at) [name: 'idx_section_progress_org_status']
+  }
+}
+
+Table local_file_company_profiles {
+  local_file_id uuid [pk, ref: > local_files.id]
+  organization_id uuid [not null, ref: > organizations.id]
+  entity_name varchar(255) [not null]
+  alias varchar(120)
+  business_field varchar(255) [not null]
+  establishment_date date
+  commercial_start_date date
+  office_address text
+  factory_address text
+  employee_count int
+  tax_year int [not null]
+  document_type varchar(80) [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, tax_year) [name: 'idx_lf_company_profile_org_year']
+  }
+}
+
+Table shareholders {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  shareholder_name varchar(255) [not null]
+  nominal_value numeric(20,2) [not null]
+  ownership_percentage numeric(7,4) [not null]
+  sort_order int [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, sort_order) [unique, name: 'uq_shareholder_order']
+    (organization_id, local_file_id) [name: 'idx_shareholders_tenant_document']
+  }
+}
+
+Table company_managements {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  management_type varchar(32) [not null]
+  position varchar(160) [not null]
+  person_name varchar(255) [not null]
+  sort_order int [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, management_type, sort_order) [unique, name: 'uq_management_order']
+    (organization_id, local_file_id) [name: 'idx_managements_tenant_document']
+  }
+}
+
+Table business_profiles {
+  local_file_id uuid [pk, ref: > local_files.id]
+  organization_id uuid [not null, ref: > organizations.id]
+  business_description text [not null]
+  products_and_services text
+  value_chain_description text
+  business_strategy text
+  business_process_description text [not null]
+  ai_scheme_enabled boolean [not null, default: false]
+  updated_at timestamptz [not null]
+}
+
+Table business_process_steps {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  sequence int [not null]
+  activity varchar(255) [not null]
+  actor_or_department varchar(160)
+  description text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, sequence) [unique, name: 'uq_business_process_step_sequence']
+    (organization_id, local_file_id) [name: 'idx_business_steps_tenant_document']
+  }
+}
+
+Table ai_generations {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  requested_by_user_id uuid [not null, ref: > users.id]
+  provider varchar(40) [not null]
+  model varchar(120)
+  model_revision varchar(160)
+  prompt_version varchar(80) [not null]
+  schema_version varchar(80) [not null]
+  status ai_generation_status [not null]
+  idempotency_key varchar(128) [not null, unique]
+  correlation_id varchar(80) [not null, unique]
+  input_hash varchar(128) [not null]
+  latency_ms int
+  input_tokens int
+  output_tokens int
+  safe_error_code varchar(80)
+  accepted_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  expires_at timestamptz
+
+  indexes {
+    (organization_id, local_file_id, created_at) [name: 'idx_ai_generation_document_history']
+    (status, created_at) [name: 'idx_ai_generation_worker_status']
+  }
+}
+
+Table ai_generation_phases {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  generation_id uuid [not null, ref: > ai_generations.id]
+  source_step_id uuid [ref: > business_process_steps.id]
+  phase_number int [not null]
+  phase_name varchar(160) [not null]
+  activity_title varchar(255) [not null]
+  short_description text [not null]
+  category ai_phase_category [not null]
+  next_phase_number int
+
+  indexes {
+    (generation_id, phase_number) [unique, name: 'uq_ai_phase_number']
+    (organization_id, generation_id) [name: 'idx_ai_phases_tenant_generation']
+  }
+}
+
+Table financial_summaries {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  fiscal_year int [not null]
+  currency char(3) [not null, default: 'IDR']
+  revenue numeric(20,2)
+  cogs numeric(20,2)
+  gross_profit numeric(20,2)
+  operating_expense numeric(20,2)
+  operating_profit numeric(20,2)
+  total_assets numeric(20,2)
+  notes text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, fiscal_year) [unique, name: 'uq_financial_summary_year']
+    (organization_id, fiscal_year) [name: 'idx_financial_summary_org_year']
+  }
+}
+
+Table affiliates {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  company_name varchar(255) [not null]
+  business_activity_or_role text
+  relationship_type varchar(160) [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, local_file_id) [name: 'idx_affiliates_tenant_document']
+    (local_file_id, company_name) [name: 'idx_affiliates_document_name']
+  }
+}
+
+Table competitors {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  company_name varchar(255) [not null]
+  domicile_country varchar(120) [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, local_file_id) [name: 'idx_competitors_tenant_document']
+  }
+}
+
+Table industry_overviews {
+  local_file_id uuid [pk, ref: > local_files.id]
+  organization_id uuid [not null, ref: > organizations.id]
+  source_file_id uuid [ref: > files.id]
+  text_description text
+  industry_scope_definition text
+  import_supply_dependency text
+  future_and_market_prospects text
+  updated_at timestamptz [not null]
+}
+
+Table file_extractions {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  source_file_id uuid [not null, ref: > files.id]
+  requested_by_user_id uuid [not null, ref: > users.id]
+  purpose varchar(80) [not null]
+  status file_extraction_status [not null, default: 'QUEUED']
+  extracted_text_ciphertext text
+  safe_error_code varchar(80)
+  started_at timestamptz
+  completed_at timestamptz
+  expires_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (organization_id, local_file_id, created_at) [name: 'idx_file_extractions_document']
+    (status, created_at) [name: 'idx_file_extractions_worker']
+  }
+}
+
+Table transaction_imports {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  source_file_id uuid [ref: > files.id]
+  requested_by_user_id uuid [not null, ref: > users.id]
+  source_type varchar(20) [not null]
+  status transaction_import_status [not null, default: 'UPLOADED']
+  idempotency_key varchar(128) [not null, unique]
+  total_rows int [not null, default: 0]
+  valid_rows int [not null, default: 0]
+  invalid_rows int [not null, default: 0]
+  imported_rows int [not null, default: 0]
+  started_at timestamptz
+  completed_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, local_file_id, created_at) [name: 'idx_transaction_imports_document']
+    (status, created_at) [name: 'idx_transaction_imports_worker']
+  }
+}
+
+Table transaction_import_errors {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  transaction_import_id uuid [not null, ref: > transaction_imports.id]
+  row_number int [not null]
+  column_name varchar(120)
+  error_code varchar(80) [not null]
+  safe_message text [not null]
+  created_at timestamptz [not null]
+
+  indexes {
+    (transaction_import_id, row_number) [name: 'idx_transaction_import_errors_row']
+  }
+}
+
+Table affiliate_transactions {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  affiliate_id uuid [ref: > affiliates.id]
+  transaction_type varchar(160) [not null]
+  counterparty_name varchar(255) [not null]
+  description text
+  tp_method varchar(40)
+  currency char(3) [not null, default: 'IDR']
+  amount numeric(20,2) [not null]
+  source_row_number int
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, local_file_id, transaction_type) [name: 'idx_affiliate_tx_document_type']
+    (local_file_id, counterparty_name) [name: 'idx_affiliate_tx_counterparty']
+  }
+}
+
+Table independent_transactions {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  transaction_type varchar(160) [not null]
+  counterparty_name varchar(255) [not null]
+  currency char(3) [not null, default: 'IDR']
+  amount numeric(20,2) [not null]
+  source_row_number int
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, local_file_id, transaction_type) [name: 'idx_independent_tx_document_type']
+  }
+}
+
+Table transaction_summaries {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  summary_code varchar(80) [not null]
+  label varchar(255) [not null]
+  scope transaction_scope [not null]
+  currency char(3) [not null, default: 'IDR']
+  amount numeric(20,2) [not null]
+  generated_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, summary_code, scope) [unique, name: 'uq_transaction_summary']
+    (organization_id, local_file_id) [name: 'idx_transaction_summaries_tenant_document']
+  }
+}
+
+Table non_financial_events {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  event_date date
+  event_type varchar(120) [not null]
+  description text [not null]
+  pricing_or_profit_impact text
+  sort_order int [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, sort_order) [unique, name: 'uq_non_financial_event_order']
+    (organization_id, local_file_id) [name: 'idx_non_financial_events_document']
+  }
+}
+
+Table far_analyses {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  status section_status [not null, default: 'NOT_STARTED']
+  updated_by_user_id uuid [not null, ref: > users.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (local_file_id) [unique, name: 'uq_far_analysis_document']
+    (organization_id, status) [name: 'idx_far_analysis_org_status']
+  }
+}
+
+Table far_functions {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  far_analysis_id uuid [not null, ref: > far_analyses.id]
+  function_name varchar(255) [not null]
+  execution_description text [not null]
+  sort_order int [not null]
+
+  indexes {
+    (far_analysis_id, sort_order) [unique, name: 'uq_far_function_order']
+  }
+}
+
+Table far_assets {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  far_analysis_id uuid [not null, ref: > far_analyses.id]
+  asset_category varchar(255) [not null]
+  net_book_value numeric(20,2)
+  notes text
+  sort_order int [not null]
+
+  indexes {
+    (far_analysis_id, sort_order) [unique, name: 'uq_far_asset_order']
+  }
+}
+
+Table far_risks {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  far_analysis_id uuid [not null, ref: > far_analyses.id]
+  risk_name varchar(255) [not null]
+  handling_description text [not null]
+  sort_order int [not null]
+
+  indexes {
+    (far_analysis_id, sort_order) [unique, name: 'uq_far_risk_order']
+  }
+}
+
+Table tp_method_selections {
+  far_analysis_id uuid [pk, ref: > far_analyses.id]
+  organization_id uuid [not null, ref: > organizations.id]
+  selected_method varchar(40) [not null]
+  tested_party varchar(255) [not null]
+  profit_level_indicator varchar(40) [not null]
+  selection_reason text [not null]
+  updated_at timestamptz [not null]
+}
+
+Table tp_method_evaluations {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  far_analysis_id uuid [not null, ref: > far_analyses.id]
+  method_code varchar(40) [not null]
+  evaluation_status varchar(32) [not null]
+  reason text [not null]
+  sort_order int [not null]
+
+  indexes {
+    (far_analysis_id, method_code) [unique, name: 'uq_tp_method_evaluation']
+  }
+}
+
+Table benchmarking_analyses {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  source_file_id uuid [ref: > files.id]
+  status section_status [not null, default: 'NOT_STARTED']
+  search_strategy text
+  updated_by_user_id uuid [not null, ref: > users.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (local_file_id) [unique, name: 'uq_benchmarking_document']
+    (organization_id, status) [name: 'idx_benchmarking_org_status']
+  }
+}
+
+Table benchmark_search_steps {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  benchmarking_analysis_id uuid [not null, ref: > benchmarking_analyses.id]
+  sequence int [not null]
+  criteria text [not null]
+  result_count int
+  notes text
+
+  indexes {
+    (benchmarking_analysis_id, sequence) [unique, name: 'uq_benchmark_step_sequence']
+  }
+}
+
+Table benchmark_search_results {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  benchmarking_analysis_id uuid [not null, ref: > benchmarking_analyses.id]
+  company_name varchar(255) [not null]
+  country varchar(120) [not null]
+  result_status varchar(32) [not null]
+  exclusion_reason text
+
+  indexes {
+    (benchmarking_analysis_id, result_status) [name: 'idx_benchmark_results_status']
+  }
+}
+
+Table pli_selections {
+  benchmarking_analysis_id uuid [pk, ref: > benchmarking_analyses.id]
+  organization_id uuid [not null, ref: > organizations.id]
+  pli_code varchar(20) [not null]
+  formula text [not null]
+  selected_at timestamptz [not null]
+}
+
+Table comparables {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  benchmarking_analysis_id uuid [not null, ref: > benchmarking_analyses.id]
+  company_name varchar(255) [not null]
+  country varchar(120) [not null]
+  cogs numeric(20,2)
+  gross_profit numeric(20,2)
+  operating_profit numeric(20,2)
+  pli_percentage numeric(12,6) [not null]
+  is_final boolean [not null, default: false]
+  sort_order int [not null]
+
+  indexes {
+    (benchmarking_analysis_id, is_final, sort_order) [name: 'idx_comparables_final_order']
+    (organization_id, company_name) [name: 'idx_comparables_library']
+  }
+}
+
+Table interquartile_ranges {
+  benchmarking_analysis_id uuid [pk, ref: > benchmarking_analyses.id]
+  organization_id uuid [not null, ref: > organizations.id]
+  pli_code varchar(20) [not null]
+  minimum numeric(12,6) [not null]
+  q1 numeric(12,6) [not null]
+  median numeric(12,6) [not null]
+  q3 numeric(12,6) [not null]
+  maximum numeric(12,6) [not null]
+  calculated_at timestamptz [not null]
+}
+
+Table review_warnings {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  warning_code varchar(80) [not null]
+  severity varchar(20) [not null]
+  message text [not null]
+  resolved_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, resolved_at, severity) [name: 'idx_review_warnings_active']
+  }
+}
+
+Table document_templates {
+  id uuid [pk]
+  code varchar(40) [not null]
+  version varchar(40) [not null]
+  schema_version varchar(40) [not null]
+  template_file_id uuid [not null, unique, ref: > files.id]
+  checksum_sha256 varchar(64) [not null]
+  status varchar(20) [not null]
+  manifest jsonb [not null]
+  activated_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (code, version) [unique, name: 'uq_document_template_version']
+    (code, status) [name: 'idx_document_template_active']
+  }
+}
+
+Table document_generations {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  template_id uuid [not null, ref: > document_templates.id]
+  requested_by_user_id uuid [not null, ref: > users.id]
+  review_confirmed_at timestamptz [not null]
+  warning_acknowledged_at timestamptz
+  include_pdf boolean [not null, default: false]
+  status document_generation_status [not null]
+  idempotency_key varchar(128) [not null, unique]
+  safe_error_code varchar(80)
+  progress_percent int [not null, default: 0]
+  started_at timestamptz
+  completed_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (organization_id, local_file_id, created_at) [name: 'idx_document_generation_history']
+    (status, created_at) [name: 'idx_document_generation_worker']
+  }
+}
+
+Table document_generation_attempts {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  generation_id uuid [not null, ref: > document_generations.id]
+  attempt_number int [not null]
+  status document_generation_status [not null]
+  safe_error_code varchar(80)
+  started_at timestamptz [not null]
+  completed_at timestamptz
+
+  indexes {
+    (generation_id, attempt_number) [unique, name: 'uq_document_generation_attempt']
+    (organization_id, status, started_at) [name: 'idx_generation_attempts_status']
+  }
+}
+
+Table document_snapshots {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  generation_id uuid [not null, unique, ref: > document_generations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  schema_version varchar(40) [not null]
+  snapshot_data jsonb [not null]
+  checksum_sha256 varchar(64) [not null]
+  created_at timestamptz [not null]
+
+  indexes {
+    (organization_id, local_file_id, created_at) [name: 'idx_document_snapshots_history']
+  }
+}
+
+Table document_versions {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  generation_id uuid [not null, unique, ref: > document_generations.id]
+  version_number int [not null]
+  docx_file_id uuid [not null, ref: > files.id]
+  pdf_file_id uuid [ref: > files.id]
+  template_version varchar(40) [not null]
+  snapshot_checksum varchar(64) [not null]
+  created_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, version_number) [unique, name: 'uq_document_version_number']
+    (organization_id, created_at) [name: 'idx_document_versions_org_created']
+  }
+}
+
+Table notifications {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  organization_id uuid [ref: > organizations.id]
+  type varchar(80) [not null]
+  title varchar(255) [not null]
+  body text [not null]
+  reference_type varchar(40)
+  reference_id uuid
+  read_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (user_id, read_at, created_at) [name: 'idx_notifications_user_unread']
+  }
+}
+
+Table email_deliveries {
+  id uuid [pk]
+  organization_id uuid [ref: > organizations.id]
+  user_id uuid [ref: > users.id]
+  provider_message_id varchar(160) [unique]
+  template_code varchar(80) [not null]
+  recipient_hash varchar(128) [not null]
+  status varchar(32) [not null]
+  idempotency_key varchar(128) [not null, unique]
+  attempt_count int [not null, default: 0]
+  safe_error_code varchar(80)
+  sent_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (status, created_at) [name: 'idx_email_delivery_retry']
+  }
+}
+
+Table audit_logs {
+  id uuid [pk]
+  organization_id uuid [ref: > organizations.id]
+  actor_user_id uuid [ref: > users.id]
+  actor_type varchar(24) [not null]
+  action varchar(120) [not null]
+  target_type varchar(80) [not null]
+  target_id uuid
+  reason text
+  ip_hash varchar(128)
+  correlation_id varchar(80)
+  metadata jsonb
+  occurred_at timestamptz [not null]
+
+  indexes {
+    (organization_id, occurred_at) [name: 'idx_audit_org_time']
+    (actor_user_id, occurred_at) [name: 'idx_audit_actor_time']
+    (target_type, target_id, occurred_at) [name: 'idx_audit_target_time']
+  }
+}
+
+Table platform_settings {
+  key varchar(120) [pk]
+  value jsonb [not null]
+  updated_by_admin_id uuid [not null, ref: > users.id]
+  updated_at timestamptz [not null]
+}
+
+Table maintenance_events {
+  id uuid [pk]
+  message text [not null]
+  is_active boolean [not null, default: false]
+  activated_by_admin_id uuid [ref: > users.id]
+  deactivated_by_admin_id uuid [ref: > users.id]
+  activated_at timestamptz
+  deactivated_at timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (is_active, created_at) [name: 'idx_maintenance_active']
+  }
+}
+
+Table integration_events {
+  id uuid [pk]
+  provider varchar(40) [not null]
+  event_type varchar(80) [not null]
+  external_event_id varchar(160)
+  status varchar(32) [not null]
+  payload_hash varchar(128)
+  correlation_id varchar(80)
+  safe_error_code varchar(80)
+  received_at timestamptz [not null]
+  processed_at timestamptz
+
+  indexes {
+    (provider, external_event_id) [unique, name: 'uq_integration_external_event']
+    (status, received_at) [name: 'idx_integration_processing']
+  }
+}
+
+Table idempotency_keys {
+  id uuid [pk]
+  scope varchar(80) [not null]
+  key varchar(160) [not null]
+  request_hash varchar(128) [not null]
+  response_code int
+  resource_type varchar(80)
+  resource_id uuid
+  expires_at timestamptz [not null]
+  created_at timestamptz [not null]
+
+  indexes {
+    (scope, key) [unique, name: 'uq_idempotency_scope_key']
+    (expires_at) [name: 'idx_idempotency_expiry']
+  }
+}
+
+Ref: subscriptions.activated_by_payment_id > payments.id
+Ref: subscription_document_addons.payment_id > payments.id
+Ref: subscription_seat_addons.payment_id > payments.id
+Ref: refunds.evidence_file_id > files.id
