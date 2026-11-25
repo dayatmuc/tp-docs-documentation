@@ -6,7 +6,7 @@
 
 ## 2. Daftar Use Case — Karyawan
 
-Use case Karyawan pada versi ini dibatasi pada aktivasi dan pemantauan akses langganan perusahaan. Karyawan tidak dapat membeli paket, add-on, mengelola pembayaran, atau mengundang anggota lain.
+Selain menerima undangan dan memantau akses langganan, Karyawan dapat mengisi Local File organisasi yang ditugaskan oleh User Induk. Karyawan tidak dapat membuat Local File baru, membeli paket atau add-on, mengelola pembayaran, mengundang anggota lain, atau mengubah penugasan.
 
 ### 2.1 Visual Aktivitas Karyawan
 
@@ -16,9 +16,11 @@ flowchart TB
 
     UIK01(["UK-01<br/>Menerima Undangan Langganan Perusahaan"])
     UIK02(["UK-02<br/>Melihat Status Akses Langganan"])
+    UIK03(["UK-03<br/>Mengisi Local File yang Ditugaskan"])
 
     A --> UIK01
     A --> UIK02
+    A --> UIK03
 
     OPEN["UK-01.1<br/>Membuka Link Undangan"]
     CHECK["UK-01.2<br/>Memeriksa Kepemilikan Akun"]
@@ -54,6 +56,18 @@ flowchart TB
     UIK02 -. "&lt;&lt;include&gt;&gt;" .-> PERIOD
     UIK02 -. "&lt;&lt;extend&gt;&gt;" .-> EXPIRED
     PERIOD ~~~ EXPIRED
+
+    ASSIGNED["UK-03.1<br/>Membuka Draft yang Ditugaskan"]
+    SECTION["UK-03.2<br/>Memilih Bagian 01–10 dalam Urutan Bebas"]
+    EDIT["UK-03.3<br/>Mengisi dan Menyimpan Bagian"]
+    SHARED["UK-03.4<br/>Melihat Perubahan Bersama"]
+    CONFLICT["UK-03.E1<br/>Konflik Versi Saat Menyimpan"]
+
+    UIK03 -. "&lt;&lt;include&gt;&gt;" .-> ASSIGNED
+    UIK03 -. "&lt;&lt;include&gt;&gt;" .-> SECTION
+    UIK03 -. "&lt;&lt;include&gt;&gt;" .-> EDIT
+    UIK03 -. "&lt;&lt;include&gt;&gt;" .-> SHARED
+    UIK03 -. "&lt;&lt;extend&gt;&gt;" .-> CONFLICT
 ```
 
 **Legenda:** garis penuh menunjukkan aktivitas yang dimulai langsung oleh Karyawan. Panah `<<include>>` menunjukkan tahapan wajib, sedangkan `<<extend>>` menunjukkan kondisi atau pilihan tambahan.
@@ -76,3 +90,14 @@ flowchart TB
 | UK-02.3    | └── _sub dari UK-02_      | Melihat Status Membership                  | [Aktivitas menampilkan status aktif, tertunda, atau dicabut]                                           | [-]                     | [-]                   |
 | UK-02.4    | └── _sub dari UK-02_      | Melihat Masa Berlaku Akses                 | [Aktivitas menampilkan tanggal berakhir berdasarkan langganan perusahaan]                              | [-]                     | [-]                   |
 | UK-02.E1   | └── _extend dari UK-02_   | Akses Langganan Berakhir                   | [Aktivitas mencabut fitur berbayar saat paket perusahaan berakhir]                                     | [-]                     | [-]                   |
+
+| **UK-03** | **`[AKTOR DIRECT — KARYAWAN DITUGASKAN]`** | **Mengisi Local File yang Ditugaskan** | [Aktivitas Karyawan berkontribusi pada draft organisasi yang sama dengan User Induk] | UK-03.1 s/d UK-03.4 | UK-03.E1 |
+| UK-03.1 | └── _sub dari UK-03_ | Membuka Draft yang Ditugaskan | [Karyawan hanya melihat Local File yang penugasannya masih aktif] | [-] | [-] |
+| UK-03.2 | └── _sub dari UK-03_ | Memilih Bagian Pengisian | [Bagian 01–10 dapat dibuka dalam urutan bebas, tanpa menyelesaikan bagian sebelumnya] | [-] | [-] |
+| UK-03.3 | └── _sub dari UK-03_ | Mengisi dan Menyimpan Bagian | [Perubahan disimpan pada draft organisasi bersama dengan identitas pengubah dan waktu pembaruan] | [-] | UK-03.E1 |
+| UK-03.4 | └── _sub dari UK-03_ | Melihat Perubahan Bersama | [Data dan status bagian yang telah disimpan User Induk atau Karyawan lain terlihat setelah dimuat ulang] | [-] | [-] |
+| UK-03.E1 | └── _extend dari UK-03.3_ | Konflik Versi Saat Menyimpan | [Perubahan berbasis versi lama ditolak; Karyawan memuat data terbaru sebelum menyimpan kembali] | [-] | [-] |
+
+Bagian 11, Review & Generate, dapat dibuka untuk melihat kelengkapan. Pembuatan file akhir dilakukan oleh User Induk setelah seluruh syarat valid. Pencabutan penugasan langsung mengakhiri akses Karyawan ke dokumen tersebut.
+
+Karyawan dengan penugasan aktif dapat membuka History Versi pada Local File yang ditugaskan dan membandingkan dua versi hasil generate dari Local File tersebut secara baca saja. Karyawan tanpa penugasan tidak dapat melihat daftar atau hasil perbandingan versi.

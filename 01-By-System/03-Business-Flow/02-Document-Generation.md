@@ -31,6 +31,8 @@ Dokumen yang dihasilkan TP Docs tetap berstatus **draft** dan wajib ditinjau Use
 
 Kuota dokumen telah digunakan ketika dokumen baru berhasil dibuat. Menekan generate tidak mengurangi kuota dokumen untuk kedua kalinya.
 
+Bagian Review & Generate dapat dibuka kapan saja oleh User Induk dan Karyawan yang ditugaskan untuk melihat kelengkapan draft bersama. Urutan pengisian bagian 01–10 bebas. Hanya User Induk yang dapat memberi konfirmasi final dan memulai generate setelah seluruh validasi lulus.
+
 ## 3. Flow Pemeriksaan Kesiapan Generate
 
 ```mermaid
@@ -43,8 +45,8 @@ flowchart TD
 
     DG_ACCESS_OK -- "Ya" --> DG_VALIDATE[Validasi seluruh bagian wajib]
     DG_VALIDATE --> DG_COMPLETE{"Data lengkap dan valid?"}
-    DG_COMPLETE -- "Tidak" --> DG_LIST[Tampilkan daftar bagian, field, atau tabel yang harus diperbaiki]
-    DG_LIST --> DG_SAVE[Simpan dokumen sebagai Draft atau In Progress]
+    DG_COMPLETE -- "Tidak" --> DG_LIST[Tampilkan pratinjau kelengkapan dan tautan ke bagian yang harus diperbaiki]
+    DG_LIST --> DG_SAVE[Simpan dokumen sebagai Draft atau In Progress; tombol Generate tidak aktif]
     DG_SAVE --> DG_RETURN([Kembali ke bagian Local File terkait])
 
     DG_COMPLETE -- "Ya" --> DG_CONSISTENCY[Periksa konsistensi entitas, tahun pajak, transaksi, metode, PLI, dan pembanding]
@@ -171,6 +173,14 @@ flowchart TD
     class DH_LIST,DH_SELECT,DH_OPEN,DH_URL,DH_FILE,DH_CONFIRM,DH_LIMIT,DH_COPY,DH_NEW_VERSION process;
     class DH_ACTION,DH_DOWNLOAD,DH_QUOTA decision;
 ```
+
+### 6.1 Perbandingan History Versi
+
+User Induk memilih satu Local File dari History Dokumen, lalu membuka panel **History Versi**. Daftar versi hasil generate ditampilkan terbaru dahulu dan dimuat bertahap agar puluhan versi tetap dapat ditelusuri. Draft yang sedang dikerjakan ditampilkan terpisah; draft bukan versi hasil generate.
+
+Pengguna dapat memilih tepat dua versi hasil generate dari Local File yang sama sebagai titik A dan B. Sistem memeriksa izin akses, mengambil dua `document_snapshots` immutable yang terkait dengan `document_versions`, lalu membandingkan data terstruktur per bagian. Ringkasan menampilkan bagian yang berubah dan nilai sebelum/sesudah; rincian dapat dibuka per bagian. Perbedaan format DOCX/PDF atau template saja tidak boleh diklaim sebagai perubahan data. Jika snapshot menggunakan schema berbeda, sistem menormalisasi dengan pemetaan yang didukung atau menampilkan bahwa perbandingan bagian tersebut tidak tersedia.
+
+Perbandingan bersifat baca saja, tidak mengubah draft, versi lama, nomor versi, maupun kuota. Versi dari Local File berbeda, versi yang gagal dibuat, atau dokumen di luar hak akses harus ditolak. Buka versi, unduh, dan duplikasi tetap merupakan tindakan terpisah.
 
 ## 7. Status Dokumen dan Generate
 

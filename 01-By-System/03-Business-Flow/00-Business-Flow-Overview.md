@@ -33,7 +33,7 @@ flowchart LR
 Berlaku pada paket, upgrade, perpanjangan, add-on, Enterprise/Custom. Quotation membekukan promo saat diterbitkan.
 
 
-Alur User Induk dibaca secara berurutan: **login dan penyusunan Local File**, dilanjutkan dengan **langganan dan multi-pengguna**, kemudian **Enterprise/Custom** apabila kebutuhan perusahaan tidak dapat dipenuhi paket reguler.
+Alur utama dimulai dari login dan pembukaan Local File. Setelah dokumen dibuat, bagian pengisian dapat dipilih dalam urutan bebas oleh User Induk dan Karyawan yang ditugaskan. Alur langganan dan Enterprise/Custom berdiri sebagai proses terkait.
 
 ### 3.1 Login dan Penyusunan Local File
 
@@ -52,55 +52,30 @@ flowchart TD
     UI_RECOVERY -- "Tidak" --> UI_LOGIN
     UI_AUTH -- "Ya" --> UI_DASHBOARD[Dashboard User Induk]
 
-    UI_DASHBOARD --> UI_DOCUMENT[Memilih Buat Dokumen Baru atau Buka Draft]
-    UI_DOCUMENT --> UI_QUOTA{"Kuota dokumen tersedia?"}
-    UI_QUOTA -- "Tidak" --> UI_TO_SUBSCRIPTION[Masuk ke proses langganan atau tambah kuota]
-    UI_QUOTA -- "Ya" --> UI_IDENTITY[Menentukan entitas dan tahun pajak]
-
-    UI_IDENTITY --> UI_PROFILE[1. Mengisi Profil Perusahaan]
-    UI_PROFILE --> UI_PROFILE_DETAIL[Nama entitas, alias, bidang usaha, tanggal, alamat, karyawan, tahun pajak, dan jenis dokumen]
-    UI_PROFILE_DETAIL --> UI_OWNERSHIP[2. Mengisi Kepemilikan dan Manajemen]
-    UI_OWNERSHIP --> UI_OWNER_DETAIL[Pemegang saham, nilai nominal, persentase, komisaris, dan direksi]
-    UI_OWNER_DETAIL --> UI_BUSINESS[3. Mengisi Bisnis, Produk, dan Strategi]
-    UI_BUSINESS --> UI_AI_OPTION{"Gunakan visual Skema AI opsional?"}
-    UI_AI_OPTION -- "Tidak" --> UI_FINANCE[4. Mengisi Ringkasan Laporan Keuangan]
-    UI_AI_OPTION -- "Ya" --> UI_AI_INPUT[Narasi wajib dan langkah proses opsional]
-    UI_AI_INPUT --> UI_AI[Generate fase dinamis berdasarkan input pengguna]
-    UI_AI --> UI_AI_REVIEW[Terima hasil atau perbaiki input dan generate ulang]
-    UI_AI_REVIEW --> UI_FINANCE
-    UI_FINANCE --> UI_AFFILIATE[5. Mengisi Pihak Afiliasi dan Pesaing]
-    UI_AFFILIATE --> UI_INDUSTRY[6. Mengisi Gambaran Industri]
-    UI_INDUSTRY --> UI_INDUSTRY_MODE{"Sumber gambaran industri?"}
-    UI_INDUSTRY_MODE -- "File" --> UI_INDUSTRY_FILE[Unggah Word atau PDF]
-    UI_INDUSTRY_MODE -- "Teks" --> UI_INDUSTRY_TEXT[Isi ruang lingkup, impor, pasokan, prospek, dan pasar]
-    UI_INDUSTRY_FILE --> UI_TRANSACTION
-    UI_INDUSTRY_TEXT --> UI_TRANSACTION[7. Mengisi Transaksi Afiliasi]
-
-    UI_TRANSACTION --> UI_TRANSACTION_MODE{"Metode input transaksi?"}
-    UI_TRANSACTION_MODE -- "File" --> UI_UPLOAD[Download template, copy TSV, atau upload Excel]
-    UI_TRANSACTION_MODE -- "Manual" --> UI_MANUAL[Isi transaksi afiliasi dan independen]
-    UI_UPLOAD --> UI_SUMMARY[Summary transaksi TP dibuat otomatis]
-    UI_MANUAL --> UI_SUMMARY
-    UI_SUMMARY --> UI_FAR[8. Melakukan Analisis FAR]
-    UI_FAR --> UI_FAR_DETAIL[Fungsi, aset, risiko, metode terpilih, pihak dianalisis, PLI, dan alasan]
-    UI_FAR_DETAIL --> UI_METHOD[Evaluasi lima metode Transfer Pricing]
-    UI_METHOD --> UI_BENCHMARK[9. Kelola Data Pembanding dan Seleksi]
-    UI_BENCHMARK --> UI_BENCHMARK_SOURCE[Upload benchmarking atau susun strategi pencarian]
-    UI_BENCHMARK_SOURCE --> UI_PLI{"Pilih satu PLI"}
-    UI_PLI -- "CPM" --> UI_FINAL_COMPARABLE
-    UI_PLI -- "OM" --> UI_FINAL_COMPARABLE
-    UI_PLI -- "NCP" --> UI_FINAL_COMPARABLE[Pilih pembanding final dan hitung rentang interkuartil]
-
-    UI_FINAL_COMPARABLE --> UI_REVIEW[10. Preview Ringkasan Local File]
-    UI_REVIEW --> UI_COMPLETE{"Seluruh data wajib lengkap?"}
-    UI_COMPLETE -- "Tidak" --> UI_DRAFT[Simpan draft dan kembali ke bagian yang belum lengkap]
-    UI_DRAFT --> UI_DOCUMENT
-    UI_COMPLETE -- "Ya" --> UI_RANGE{"Hasil berada dalam rentang wajar?"}
-    UI_RANGE -- "Tidak" --> UI_WARNING[Tampilkan warning untuk ditinjau User Induk]
-    UI_WARNING --> UI_DECISION{"Tetap generate setelah ditinjau?"}
-    UI_DECISION -- "Tidak" --> UI_DOCUMENT
-    UI_DECISION -- "Ya" --> UI_GENERATE
-    UI_RANGE -- "Ya" --> UI_GENERATE[Generate draft Local File PDF atau Word]
+    UI_DASHBOARD --> UI_DOCUMENT{Buat Local File baru atau buka draft?}
+    UI_DOCUMENT -- "Buat baru" --> UI_QUOTA{Hak akses dan kuota tersedia?}
+    UI_QUOTA -- "Tidak" --> UI_TO_SUBSCRIPTION[Kelola langganan atau tambah kuota]
+    UI_QUOTA -- "Ya" --> UI_IDENTITY[User Induk menentukan entitas, tahun pajak, dan jenis dokumen]
+    UI_IDENTITY --> UI_DRAFT[Local File organisasi berstatus Draft]
+    UI_DOCUMENT -- "Buka draft" --> UI_DRAFT
+    UI_DRAFT --> UI_ASSIGN[User Induk dapat menugaskan Karyawan pada dokumen]
+    UI_ASSIGN --> UI_SECTION{Pilih bagian dalam urutan bebas}
+    UI_SECTION -- "01–10" --> UI_INPUT[User Induk atau Karyawan ditugaskan mengisi bagian pilihan]
+    UI_INPUT --> UI_SAVE[Simpan perubahan dengan versi bagian, pengubah, dan waktu]
+    UI_SAVE --> UI_CONFLICT{Versi bagian masih sama?}
+    UI_CONFLICT -- "Tidak" --> UI_REFRESH[Tampilkan konflik dan data terbaru tanpa menimpa perubahan]
+    UI_REFRESH --> UI_SECTION
+    UI_CONFLICT -- "Ya" --> UI_PROGRESS[Perbarui status kelengkapan bagian]
+    UI_PROGRESS --> UI_SECTION
+    UI_SECTION -- "11 Review" --> UI_REVIEW[Tampilkan ringkasan dan bagian yang belum lengkap]
+    UI_REVIEW --> UI_COMPLETE{Seluruh syarat valid?}
+    UI_COMPLETE -- "Tidak" --> UI_SECTION
+    UI_COMPLETE -- "Ya" --> UI_RANGE{Hasil dalam rentang wajar?}
+    UI_RANGE -- "Tidak" --> UI_WARNING[User Induk meninjau warning dan memilih perbaiki atau lanjut]
+    UI_WARNING --> UI_DECISION{Konfirmasi User Induk?}
+    UI_DECISION -- "Perbaiki" --> UI_SECTION
+    UI_DECISION -- "Lanjut" --> UI_GENERATE[Generate draft Local File PDF atau Word]
+    UI_RANGE -- "Ya" --> UI_GENERATE
     UI_GENERATE --> UI_HISTORY[Dokumen dan versi tersimpan pada history]
     UI_HISTORY --> UI_NEXT[Masuk ke pengelolaan langganan, anggota, atau logout]
 
@@ -108,8 +83,8 @@ flowchart TD
     classDef process fill:#438fe6,color:#fff,stroke:#2875c7,stroke-width:1.5px;
     classDef decision fill:#1761cf,color:#fff,stroke:#104ba3,stroke-width:2px;
     class UI_START terminal;
-    class UI_REGISTER,UI_VERIFY,UI_LOGIN,UI_RESET,UI_DASHBOARD,UI_DOCUMENT,UI_TO_SUBSCRIPTION,UI_IDENTITY,UI_PROFILE,UI_PROFILE_DETAIL,UI_OWNERSHIP,UI_OWNER_DETAIL,UI_BUSINESS,UI_AI,UI_FINANCE,UI_AFFILIATE,UI_INDUSTRY,UI_INDUSTRY_FILE,UI_INDUSTRY_TEXT,UI_TRANSACTION,UI_UPLOAD,UI_MANUAL,UI_SUMMARY,UI_FAR,UI_FAR_DETAIL,UI_METHOD,UI_BENCHMARK,UI_BENCHMARK_SOURCE,UI_FINAL_COMPARABLE,UI_REVIEW,UI_DRAFT,UI_WARNING,UI_GENERATE,UI_HISTORY,UI_NEXT process;
-    class UI_ACCOUNT,UI_AUTH,UI_RECOVERY,UI_QUOTA,UI_INDUSTRY_MODE,UI_TRANSACTION_MODE,UI_PLI,UI_COMPLETE,UI_RANGE,UI_DECISION decision;
+    class UI_REGISTER,UI_VERIFY,UI_LOGIN,UI_RESET,UI_DASHBOARD,UI_TO_SUBSCRIPTION,UI_IDENTITY,UI_DRAFT,UI_ASSIGN,UI_INPUT,UI_SAVE,UI_REFRESH,UI_PROGRESS,UI_REVIEW,UI_WARNING,UI_GENERATE,UI_HISTORY,UI_NEXT process;
+    class UI_ACCOUNT,UI_AUTH,UI_RECOVERY,UI_DOCUMENT,UI_QUOTA,UI_SECTION,UI_CONFLICT,UI_COMPLETE,UI_RANGE,UI_DECISION decision;
 ```
 
 ### 3.2 Langganan Reguler, Kuota, dan Multi-Pengguna

@@ -208,6 +208,8 @@ type LoginResponse =
 | POST | `/api/organizations/{organizationId}/document-assignments` | Owner | Tugaskan dokumen |
 | DELETE | `/api/organizations/{organizationId}/document-assignments/{assignmentId}` | Owner | Cabut penugasan |
 
+Penugasan berlaku pada satu Local File organisasi. User Induk tetap memiliki akses ke seluruh dokumen organisasi; hanya Karyawan dengan penugasan aktif yang dapat membaca dan mengubah draft yang sama. Daftar anggota yang terlihat pada workspace dokumen berasal dari penugasan aktif, bukan seluruh membership organisasi.
+
 ## 11. Plans, Subscription, Quota, dan Billing
 
 ### Diskon Event Opsional
@@ -302,12 +304,17 @@ Upload memakai field file serta metadata `purpose`, organization context, dan ta
 | GET | `/api/local-files/{localFileId}` | Assigned | Detail dan progress |
 | PATCH | `/api/local-files/{localFileId}` | Assigned | Update metadata |
 | DELETE | `/api/local-files/{localFileId}` | Owner | Hapus sesuai retensi |
-| POST | `/api/local-files/{localFileId}/duplicate` | Owner/Assigned | Duplikasi |
+| POST | `/api/local-files/{localFileId}/duplicate` | Owner | Duplikasi sebagai Local File baru |
 | GET | `/api/local-files/{localFileId}/sections` | Assigned | Progress section |
+| GET | `/api/local-files/{localFileId}/collaborators` | Assigned | User Induk dan Karyawan dengan penugasan aktif pada dokumen |
 | PATCH | `/api/local-files/{localFileId}/sections/{sectionCode}` | Assigned | Update status section |
 | POST | `/api/local-files/{localFileId}/validate` | Assigned | Validasi kelengkapan |
 | GET | `/api/local-files/{localFileId}/history` | Assigned | Histori perubahan |
 | GET | `/api/local-files/{localFileId}/audit-events` | Owner | Audit dokumen |
+
+Respons detail dan daftar bagian memuat status tiap bagian, `updatedBy`, `updatedAt`, dan versi/ETag bagian. Bagian 01–10 dapat dibaca dan disimpan dalam urutan bebas. Setiap mutation data bagian oleh User Induk atau Karyawan yang ditugaskan mengirim `If-Match` dari versi bagian terakhir yang dibaca. Jika versi tersebut sudah berubah, server mengembalikan `409` dengan versi terbaru sehingga klien dapat menampilkan konflik tanpa menimpa perubahan pengguna lain. Update pada bagian berbeda tidak saling mengunci. Bagian 11 dapat dibaca kapan saja untuk daftar kekurangan; validasi kelengkapan hanya mengunci tindakan generate.
+
+Endpoint data bagian pada seksi berikutnya mengembalikan ETag bagian yang sama pada respons baca dan respons simpan. Dengan demikian, formulir yang dibuka oleh dua pengguna dapat membandingkan versi saat menyimpan tanpa bergantung pada versi seluruh Local File.
 
 ## 14. Profil Perusahaan, Kepemilikan, dan Bisnis
 
@@ -456,12 +463,15 @@ Response `202 Accepted` mengembalikan `generationId`, `status: QUEUED`, dan poll
 | GET | `/api/local-files/{id}/review-summary` | Assigned | Preview ringkasan |
 | GET | `/api/local-files/{id}/warnings` | Assigned | Warning rentang/data |
 | POST | `/api/local-files/{id}/warnings/recalculate` | Assigned | Hitung ulang |
-| POST | `/api/local-files/{id}/generations` | Assigned | Buat job DOCX/PDF |
+| POST | `/api/local-files/{id}/generations` | Owner | Buat job DOCX/PDF setelah validasi final |
 | GET | `/api/document-generations/{generationId}` | Tenant owner | Status generation |
 | GET | `/api/local-files/{id}/document-versions` | Assigned | Histori version |
+| GET | `/api/local-files/{id}/document-versions/compare?fromVersionId={a}&toVersionId={b}` | Owner/Assigned | Diff baca saja dari dua snapshot hasil generate milik Local File yang sama; ringkasan bagian berubah dan nilai sebelum/sesudah |
 | GET | `/api/document-versions/{versionId}` | Resource permission | Metadata version |
 | GET | `/api/document-versions/{versionId}/download?format=docx\|pdf` | Resource permission | Stream DOCX/PDF setelah validasi paket dan akses |
 | POST | `/api/document-versions/{versionId}/clone` | Owner/Assigned | Clone sebagai dokumen baru |
+
+Respons perbandingan memuat `fromVersionId`, `toVersionId`, `changedSections`, serta daftar perubahan per bagian (`path`, `before`, `after`, `changeType`). Nilai sensitif hanya dikirim kepada pengguna yang berhak membaca kedua versi. `400` untuk dua ID sama atau versi dari Local File berbeda; `404` untuk versi yang tidak ada atau tidak boleh diakses; `422` bila snapshot/schema tidak dapat dibandingkan. Hasil perbandingan tidak disimpan sebagai versi baru dan tidak memodifikasi dokumen. Pagination pada daftar History Versi menggunakan urutan `version_number DESC` dan cursor stabil.
 
 ## 20. Administrator — Dashboard dan Operasional
 
@@ -692,6 +702,9 @@ Audit tidak menyimpan password, token, isi lengkap dokumen, NPWP lengkap, data f
 - Webhook duplikat idempotent.
 - AI/document generation retry tidak menggandakan job atau kuota.
 - Penugasan dokumen yang dicabut langsung menutup akses Karyawan.
+- User Induk dan Karyawan yang ditugaskan dapat menyimpan bagian berbeda secara paralel tanpa mengikuti urutan nomor.
+- Penyimpanan berbasis versi lama pada bagian yang sama menghasilkan `409` tanpa menimpa data terbaru.
+- Bagian Review & Generate dapat dibuka saat draft belum lengkap, tetapi hanya User Induk dapat memulai generate setelah validasi berhasil.
 - Local File yang tidak lengkap gagal memasuki proses generate.
 - Dokumen yang dihasilkan menggunakan snapshot dan template version yang sama.
 - Admin tidak dapat menetapkan password pengguna.

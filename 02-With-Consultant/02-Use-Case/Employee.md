@@ -108,3 +108,5 @@ flowchart TB
 | UK-C06 | Resubmit | Hanya jika assignment dan revision quota masih aktif |
 
 Karyawan tidak dapat melihat seluruh billing konsultasi organisasi, mengubah katalog, menerima quotation atas nama organisasi lain, atau menyetujui promotion working copy. Approval akhir Penyusunan Penuh tetap milik User Induk.
+
+Karyawan dengan penugasan aktif dapat membuka History Versi pada Local File yang ditugaskan dan membandingkan dua versi hasil generate dari Local File tersebut secara baca saja. Karyawan tanpa penugasan tidak dapat melihat daftar atau hasil perbandingan versi.
