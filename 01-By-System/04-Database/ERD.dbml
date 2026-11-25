@@ -1477,6 +1477,7 @@ Table document_versions {
 
   indexes {
     (local_file_id, version_number) [unique, name: 'uq_document_version_number']
+    (local_file_id, version_number, id) [name: 'idx_document_versions_history_page']
     (organization_id, created_at) [name: 'idx_document_versions_org_created']
   }
 }

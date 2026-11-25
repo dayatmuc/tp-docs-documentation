@@ -253,6 +253,10 @@ sequenceDiagram
 
 ---
 
+### 4.2 Perbandingan History Versi
+
+Layanan dokumen membandingkan dua versi hasil generate milik `local_file_id` yang sama. Setelah otorisasi organisasi dan penugasan dokumen, layanan mengambil `document_versions` serta `document_snapshots` terkait, menormalisasi snapshot berdasarkan `schema_version` yang didukung, lalu menyusun perubahan per bagian dan nilai sebelum/sesudah. Hasilnya baca saja dan dihitung saat diminta; tidak membuat versi, file, job, atau pemakaian kuota baru. Draft aktif dan hasil generate yang gagal tidak dibandingkan. Daftar versi memakai pagination agar puluhan versi tidak dimuat sekaligus. Working copy dan delivery Konsultan tetap mengikuti alur review; keduanya tidak otomatis menjadi versi hasil generate yang bisa dibandingkan.
+
 ## 5. Template Versioning dan Rilis Internal
 
 ```mermaid

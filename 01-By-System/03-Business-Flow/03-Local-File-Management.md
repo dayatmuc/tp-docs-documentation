@@ -4,15 +4,23 @@
 
 ## 1. Tujuan dan Cakupan
 
-Dokumen ini menjelaskan flow bisnis detail pengelolaan Local File oleh User Induk, mulai dari membuat atau membuka dokumen, mengisi setiap kelompok data, menyimpan draft, melanjutkan pekerjaan, sampai dokumen siap masuk ke proses review dan generate.
+Dokumen ini menjelaskan flow bisnis detail pengelolaan Local File oleh User Induk dan Karyawan yang ditugaskan, mulai dari membuat atau membuka dokumen, mengisi setiap kelompok data, menyimpan draft bersama, melanjutkan pekerjaan, sampai dokumen siap masuk ke proses review dan generate.
 
-Urutan flow mengikuti `UI-04 — Mengisi Data Dokumen`, `UI-05 — Kelola Data Pembanding dan Seleksi`, serta overview pada [00-Business-Flow-Overview.md](./00-Business-Flow-Overview.md).
+Nomor bagian mengikuti `UI-04 — Mengisi Data Dokumen`, `UI-05 — Kelola Data Pembanding dan Seleksi`, serta overview pada [00-Business-Flow-Overview.md](./00-Business-Flow-Overview.md). Nomor tersebut mengelompokkan isi dokumen, bukan mewajibkan urutan pengisian.
 
 ### 1.1 Posisi Skema AI dalam Local File
 
 Local File mencakup identitas dan kegiatan usaha, transaksi afiliasi dan independen, penerapan prinsip kewajaran termasuk FAR dan metode TP, informasi keuangan, serta kejadian nonkeuangan yang relevan. Uraian proses bisnis merupakan bagian wajib dari penjelasan kegiatan operasional. Skema AI hanya merupakan visual pendukung opsional untuk uraian tersebut dan bukan pengganti analisis transaksi, FAR, metode TP, atau pembanding.
 
 Jika Skema AI tidak digunakan atau layanan AI gagal, User Induk tetap dapat menyimpan uraian bisnis dan melanjutkan penyusunan Local File.
+
+### 1.2 Pengisian Bebas Urutan dan Draft Bersama
+
+User Induk membuat Local File baru setelah entitas, tahun pajak, jenis dokumen, hak akses, dan kuota tervalidasi. User Induk kemudian dapat menugaskan Karyawan pada dokumen tertentu. Hanya User Induk dan Karyawan dengan penugasan aktif yang dapat melihat serta mengisi draft tersebut. Pencabutan penugasan langsung menutup akses Karyawan tanpa menghapus data yang sudah tersimpan.
+
+Bagian 01–10 dapat dibuka dalam urutan bebas. Contohnya, User Induk mengisi bagian 03 sementara Karyawan mengisi bagian 05 pada Local File PT A yang sama. Setiap bagian memiliki status `Belum diisi`, `Sedang dikerjakan`, `Perlu diperbaiki`, atau `Lengkap`; progres dihitung dari jumlah bagian lengkap, bukan nomor bagian tertinggi yang pernah dibuka. Ketergantungan data antarbagian ditampilkan sebagai kebutuhan informasi atau validasi, bukan sebagai pengunci navigasi.
+
+Bagian 11, Review & Generate, dapat dibuka kapan saja untuk melihat kekurangan dan menuju bagian yang perlu dilengkapi. Hanya User Induk yang dapat mengonfirmasi generate setelah seluruh syarat valid. Penyimpanan setiap perubahan mencatat pengubah, waktu, dan versi bagian. Jika versi bagian berubah sejak pengguna membukanya, penyimpanan versi lama ditolak dan data terbaru ditampilkan untuk ditinjau; perubahan pengguna lain tidak ditimpa diam-diam.
 
 ## 2. Siklus Awal Dokumen Local File
 
@@ -299,7 +307,7 @@ flowchart TD
     S_FIELD_VALID -- "Ya" --> S_SAVE[Simpan perubahan dan waktu pembaruan]
     S_SAVE --> S_PROGRESS[Perbarui status progress bagian]
     S_PROGRESS --> S_NEXT{"Pindah ke bagian lain?"}
-    S_NEXT -- "Ya" --> S_SECTION[Muat bagian berikutnya tanpa kehilangan data]
+    S_NEXT -- "Ya" --> S_SECTION[Muat bagian 01–10 yang dipilih tanpa mengikuti urutan nomor]
     S_SECTION --> S_INPUT
     S_NEXT -- "Tidak" --> S_LEAVE{"Keluar dari dokumen?"}
     S_LEAVE -- "Tidak" --> S_INPUT
@@ -332,6 +340,8 @@ Dokumen dapat diteruskan ke [02-Document-Generation.md](./02-Document-Generation
 
 Jika salah satu syarat belum terpenuhi, sistem menampilkan bagian yang belum lengkap dan mempertahankan dokumen sebagai `Draft` atau `In Progress`.
 
+Validasi kelengkapan untuk generate tidak membatasi urutan pengisian. Bagian yang belum lengkap tetap dapat ditinggalkan sebagai draft dan dikerjakan oleh pengguna lain yang memiliki akses.
+
 ## 11. Status Dokumen
 
 | Status | Pemicu | Hak User Induk |
@@ -351,6 +361,7 @@ Jika salah satu syarat belum terpenuhi, sistem menampilkan bagian yang belum len
 6. Perubahan pada transaksi, metode, PLI, atau pembanding dapat membuat hasil analisis sebelumnya perlu dihitung atau ditinjau ulang.
 7. AI hanya membantu membuat skema berdasarkan uraian pengguna dan tidak memberikan opini pajak.
 8. Sistem menyimpan audit aktivitas penting tanpa memasukkan isi lengkap dokumen atau data finansial mentah ke log.
+9. Penyimpanan draft bersama menggunakan versi per bagian agar perubahan pada bagian berbeda dapat berjalan paralel; konflik pada bagian yang sama tidak memakai aturan penulis terakhir menang.
 
 ## 13. Referensi
 

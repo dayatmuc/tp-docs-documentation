@@ -105,6 +105,10 @@ Code review harus menolak pola berikut kecuali terdapat alasan transaction yang 
 
 Document generation harus membaca snapshot lengkap yang telah dibentuk mapper, bukan melakukan query saat Docxtemplater melakukan render.
 
+### 3.3 History Versi dan perbandingan dua snapshot
+
+Daftar versi satu Local File memakai `(local_file_id, version_number DESC, id)` dengan cursor dan batas halaman; jangan memuat seluruh versi beserta snapshot JSON dalam daftar. Untuk perbandingan, ambil tepat dua `document_versions` berdasarkan ID, batasi dengan `organization_id` dan `local_file_id`, kemudian ambil dua `document_snapshots` lewat `generation_id` pada query terpisah. Periksa kedua versi dan izin dokumen sebelum membaca `snapshot_data`; hindari N+1 dan `SELECT *` pada daftar. Hitung diff per bagian di application layer tanpa menyimpan salinan snapshot atau hasil diff permanen.
+
 ## 4. Query Plan per Endpoint Utama
 
 | Kebutuhan | Pola query | Target jumlah query |

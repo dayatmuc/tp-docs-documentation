@@ -172,6 +172,14 @@ flowchart TD
     class DH_ACTION,DH_DOWNLOAD,DH_QUOTA decision;
 ```
 
+### 6.1 Perbandingan History Versi
+
+User Induk memilih satu Local File dari History Dokumen, lalu membuka panel **History Versi**. Daftar versi hasil generate ditampilkan terbaru dahulu dan dimuat bertahap agar puluhan versi tetap dapat ditelusuri. Draft yang sedang dikerjakan ditampilkan terpisah; draft bukan versi hasil generate.
+
+Pengguna dapat memilih tepat dua versi hasil generate dari Local File yang sama sebagai titik A dan B. Sistem memeriksa izin akses, mengambil dua `document_snapshots` immutable yang terkait dengan `document_versions`, lalu membandingkan data terstruktur per bagian. Ringkasan menampilkan bagian yang berubah dan nilai sebelum/sesudah; rincian dapat dibuka per bagian. Perbedaan format DOCX/PDF atau template saja tidak boleh diklaim sebagai perubahan data. Jika snapshot menggunakan schema berbeda, sistem menormalisasi dengan pemetaan yang didukung atau menampilkan bahwa perbandingan bagian tersebut tidak tersedia.
+
+Perbandingan bersifat baca saja, tidak mengubah draft, versi lama, nomor versi, maupun kuota. Versi dari Local File berbeda, versi yang gagal dibuat, atau dokumen di luar hak akses harus ditolak. Buka versi, unduh, dan duplikasi tetap merupakan tindakan terpisah. Pada varian Konsultan, hasil review dan working copy Konsultan tidak otomatis menjadi versi hasil generate yang dapat dipilih sebelum dipromosikan menjadi versi dokumen.
+
 ## 7. Status Dokumen dan Generate
 
 | Status | Makna | Aktivitas Berikutnya |

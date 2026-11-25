@@ -465,9 +465,12 @@ Response `202 Accepted` mengembalikan `generationId`, `status: QUEUED`, dan poll
 | POST | `/api/local-files/{id}/generations` | Assigned | Buat job DOCX/PDF |
 | GET | `/api/document-generations/{generationId}` | Tenant owner | Status generation |
 | GET | `/api/local-files/{id}/document-versions` | Assigned | Histori version |
+| GET | `/api/local-files/{id}/document-versions/compare?fromVersionId={a}&toVersionId={b}` | Owner/Assigned | Diff baca saja dari dua snapshot hasil generate milik Local File yang sama; ringkasan bagian berubah dan nilai sebelum/sesudah |
 | GET | `/api/document-versions/{versionId}` | Resource permission | Metadata version |
 | GET | `/api/document-versions/{versionId}/download?format=docx\|pdf` | Resource permission | Stream DOCX/PDF setelah validasi paket, tenant, dan assignment |
 | POST | `/api/document-versions/{versionId}/clone` | Owner/Assigned | Clone sebagai dokumen baru |
+
+Respons perbandingan memuat `fromVersionId`, `toVersionId`, `changedSections`, serta daftar perubahan per bagian (`path`, `before`, `after`, `changeType`). Nilai sensitif hanya dikirim kepada pengguna yang berhak membaca kedua versi. `400` untuk dua ID sama atau versi dari Local File berbeda; `404` untuk versi yang tidak ada atau tidak boleh diakses; `422` bila snapshot/schema tidak dapat dibandingkan. Hasil perbandingan tidak disimpan sebagai versi baru dan tidak memodifikasi dokumen. Pagination pada daftar History Versi menggunakan urutan `version_number DESC` dan cursor stabil.
 
 ## 20. Katalog Konsultasi untuk Pengguna
 

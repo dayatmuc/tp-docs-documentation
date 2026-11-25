@@ -231,6 +231,8 @@ Q2 tidak disimpan sebagai kolom terpisah karena Q2 secara statistik sama dengan 
 | `document_snapshots` | Snapshot immutable `LocalFileDocumentViewModel` yang digunakan worker |
 | `document_versions` | Hasil DOCX/PDF immutable dan nomor versi dokumen |
 
+Perbandingan History Versi menggunakan dua baris `document_versions` dari `local_file_id` yang sama dan dua `document_snapshots.snapshot_data` immutable melalui `generation_id`. Diff dihitung saat diminta, bukan disimpan sebagai tabel versi perbandingan. `schema_version` menentukan pemetaan saat struktur snapshot berubah; perubahan yang tidak dapat dipetakan ditandai tidak tersedia, bukan diperkirakan. Draft dan percobaan generate yang gagal tidak menjadi sisi perbandingan.
+
 DOCX merupakan sumber utama. PDF, jika diizinkan paket, selalu berasal dari DOCX tervalidasi pada generation dan snapshot yang sama.
 
 `document_generations.review_confirmed_at` membuktikan konfirmasi final User Induk. `warning_acknowledged_at` diisi ketika pengguna memilih melanjutkan walaupun terdapat warning rentang kewajaran. `include_pdf` merekam format tambahan yang diminta dan telah diizinkan paket.

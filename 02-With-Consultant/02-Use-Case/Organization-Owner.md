@@ -190,9 +190,11 @@ flowchart TB
     HISTORY["Nama dokumen, tahun pajak,<br/>status & diperbarui"]
     OPEN["Buka Dokumen"]
     DUP["Duplikasi Dokumen"]
+    COMPARE["Bandingkan dua History Versi"]
     UI06 -. "&lt;&lt;include&gt;&gt;" .-> HISTORY
     UI06 -. "&lt;&lt;extend&gt;&gt;" .-> OPEN
     UI06 -. "&lt;&lt;extend&gt;&gt;" .-> DUP
+    UI06 -. "&lt;&lt;extend&gt;&gt;" .-> COMPARE
     HISTORY ~~~ OPEN
     HISTORY ~~~ DUP
 
@@ -433,13 +435,14 @@ flowchart TB
 | UI-04.11.1.6     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UI-04.11.1_                                                    | Pembanding Final                                  | [Aktivitas menampilkan perusahaan pembanding final yang terpilih]                                                               | [-]                                    | [-]                             |
 | UI-04.11.1.E1    | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── _extend dari UI-04.11.1_                                                 | Warning di Luar Rentang Wajar                     | [Aktivitas menampilkan peringatan apabila hasil berada di luar rentang kewajaran]                                               | [-]                                    | [-]                             |
 | UI-04.11.2       | &nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UI-04.11_                                                                              | Generate Docs                                     | [Aktivitas menghasilkan dokumen transfer pricing berdasarkan data final]                                                        | [-]                                    | [-]                             |
-| **UI-06**        | **`[AKTOR DIRECT]`**                                                                                                         | **Melihat History Dokumen**                       | [Aktivitas melihat daftar dan informasi riwayat dokumen pengguna]                                                               | UI-06.1 s/d UI-06.4                    | UI-06.E1, UI-06.E2              |
+| **UI-06**        | **`[AKTOR DIRECT]`**                                                                                                         | **Melihat History Dokumen**                       | [Aktivitas melihat daftar dan informasi riwayat dokumen pengguna]                                                               | UI-06.1 s/d UI-06.4                    | UI-06.E1 s/d UI-06.E3              |
 | UI-06.1          | └── _sub dari UI-06_                                                                                                         | Nama Dokumen                                      | [Aktivitas menampilkan nama dokumen]                                                                                            | [-]                                    | [-]                             |
 | UI-06.2          | └── _sub dari UI-06_                                                                                                         | Tahun Pajak                                       | [Aktivitas menampilkan tahun pajak dokumen]                                                                                     | [-]                                    | [-]                             |
 | UI-06.3          | └── _sub dari UI-06_                                                                                                         | Status                                            | [Aktivitas menampilkan status pengerjaan atau penerbitan dokumen]                                                               | [-]                                    | [-]                             |
 | UI-06.4          | └── _sub dari UI-06_                                                                                                         | Diperbarui                                        | [Aktivitas menampilkan waktu terakhir dokumen diperbarui]                                                                       | [-]                                    | [-]                             |
 | UI-06.E1         | └── _extend dari UI-06_                                                                                                      | Buka Dokumen                                      | [Aktivitas membuka detail dokumen yang dipilih]                                                                                 | [-]                                    | [-]                             |
 | UI-06.E2         | └── _extend dari UI-06_                                                                                                      | Duplikasi Dokumen                                 | [Aktivitas membuat salinan dokumen dari riwayat dokumen]                                                                        | [-]                                    | [-]                             |
+| UI-06.E3         | └── _extend dari UI-06_                                                                                                      | Bandingkan History Versi                          | [Aktivitas memilih dua versi hasil generate dari Local File yang sama dan melihat bagian yang berubah tanpa mengubah versi asli] | [-]                                    | [-]                             |
 | **UI-07**        | **`[AKTOR DIRECT]`**                                                                                                         | **Melihat Pustaka Pembanding**                    | [Aktivitas melihat data pembanding tersimpan tanpa mengakses file sumber]                                                       | UI-07.1, UI-07.2                       | UI-07.E1                        |
 | UI-07.1          | └── _sub dari UI-07_                                                                                                         | Data Pustaka Pembanding (Read-only)               | [Aktivitas melihat data perusahaan pembanding dalam mode hanya-baca]                                                            | UI-07.1.1 s/d UI-07.1.5                | [-]                             |
 | UI-07.1.1        | &nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UI-07.1_                                                                               | Nama Perusahaan                                   | [Aktivitas menampilkan nama perusahaan pembanding]                                                                              | [-]                                    | [-]                             |
@@ -601,3 +604,5 @@ flowchart TB
 | UI-C10 | Review tambahan | Membuat order baru ketika revision quota habis |
 
 User Induk dapat melihat seluruh request dan transaksi konsultasi organisasi.
+
+
