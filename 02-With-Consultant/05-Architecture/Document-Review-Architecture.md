@@ -264,7 +264,7 @@ Setelah delivery terbit:
 - komentar sumber yang termasuk delivery harus dapat direkonstruksi;
 - perubahan setelah delivery tidak mengubah delivery lama.
 
-Untuk menjamin ini, production schema disarankan memiliki snapshot/junction delivery-comment atau comment revision.
+Untuk menjamin ini, `review_delivery_comments` menyimpan body, kategori, severity, status, anchor, dan versi setiap komentar pada saat publish. `review_comment_status_history` menyimpan transisi status secara append-only. FK ke komentar hanya untuk lineage; isi delivery lama dibaca dari snapshot. Update atau delete delivery/snapshot yang telah terbit ditolak pada application layer dan permission/trigger database; koreksi membuat revision baru.
 
 ## 11. Review Round dan Resubmission
 

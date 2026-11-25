@@ -151,8 +151,8 @@ flowchart TD
 
     DH_ACTION -- "Buka" --> DH_OPEN[Buka detail, data, dan versi dokumen]
     DH_OPEN --> DH_DOWNLOAD{"Unduh hasil generate?"}
-    DH_DOWNLOAD -- "Ya" --> DH_URL[Buat URL file bertanda tangan dan berbatas waktu]
-    DH_URL --> DH_FILE[Unduh file]
+    DH_DOWNLOAD -- "Ya" --> DH_URL[Backend memvalidasi tenant, role, penugasan, status scan, paket, dan hak format]
+    DH_URL --> DH_FILE[NestJS stream file dari PostgreSQL ke pengguna]
     DH_DOWNLOAD -- "Tidak" --> DH_LIST
     DH_FILE --> DH_LIST
 
@@ -199,7 +199,7 @@ Perbandingan bersifat baca saja, tidak mengubah draft, versi lama, nomor versi, 
 2. Proses generate ulang harus idempoten dan tidak membuat file atau transaksi kuota ganda akibat klik berulang.
 3. Kegagalan generate tidak menghapus data Local File.
 4. Warning rentang kewajaran harus tetap tercatat pada versi yang dihasilkan jika User Induk memilih melanjutkan.
-5. File hanya dapat diakses oleh organisasi pemilik melalui URL bertanda tangan dengan masa berlaku singkat.
+5. File hanya dapat diakses melalui streaming endpoint NestJS setelah validasi organisasi pemilik, role, penugasan aktif jika berlaku, status scan, paket, dan hak format; akses dicatat dalam audit log.
 6. Isi dokumen, NPWP lengkap, dan data finansial mentah tidak boleh dicatat pada application log.
 7. Administrator tidak dapat membuka isi dokumen melalui portal operasional.
 8. Draft hasil sistem tidak merupakan opini atau jaminan kepatuhan pajak.

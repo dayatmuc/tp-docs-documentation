@@ -17,8 +17,8 @@ Harga, currency, SLA, dan revisi tidak ditetapkan permanen dalam dokumen ini. Se
 
 | Aktor | Tanggung jawab dalam layanan |
 | --- | --- |
-| User Induk | Membuat request untuk seluruh dokumen organisasi, membayar, melihat seluruh status, menindaklanjuti review, dan menyetujui working copy |
-| Karyawan | Membuat dan membayar request hanya untuk dokumen yang ditugaskan serta melihat transaksi konsultasi yang dibuatnya |
+| User Induk | Membuat request untuk seluruh dokumen organisasi, membayar, melihat seluruh status, menindaklanjuti review, menyetujui hasil request sendiri, dan mengambil alih persetujuan bila hak pemohon Karyawan dicabut |
+| Karyawan | Membuat dan membayar request hanya untuk dokumen yang ditugaskan, melihat transaksi sendiri, serta meninjau dan menyetujui hasil Penyusunan Penuh yang diajukannya selama hak ubah Local File masih aktif |
 | Konsultan | Menerima assignment, mengonfirmasi ETA, melakukan review atau Penyusunan Penuh, dan menyerahkan hasil |
 | Administrator | Mengelola katalog, quotation, akun Konsultan, assignment, perubahan ETA, payment monitoring, refund, dan SLA |
 | Sistem | Memvalidasi kewenangan, menyimpan snapshot, mengatur status, membatasi akses, mengirim notifikasi, dan mencatat audit |
@@ -112,6 +112,7 @@ Jika tombol diklik ulang atau request jaringan diulang, idempotency key mengemba
 - Payment dinyatakan berhasil hanya setelah webhook terverifikasi.
 - Redirect browser tidak mengaktifkan request.
 - Setelah `PAID`, request menjadi `PENDING_ASSIGNMENT`.
+- Setiap retry menambah attempt di `consultation_request_payments` tanpa menghapus attempt gagal, kedaluwarsa, atau dibatalkan. `payments.status` tetap sumber status tiap attempt; request hanya boleh mempunyai satu attempt current dan satu payment sah yang memenangkan aktivasi. Webhook mengunci request dan payment, memeriksa idempotency serta snapshot nominal/currency sebelum transisi, sehingga callback berulang tidak mengaktifkan layanan atau membuat assignment dua kali.
 - Konsultan belum dapat melihat request sebelum assignment dibuat dan diterima.
 
 ### 5.4 Assignment
@@ -241,26 +242,29 @@ flowchart TD
 
 Working copy tidak menimpa Local File utama. Konsultan hanya dapat mengubah section yang berada dalam scope request.
 
-### 7.3 Review User Induk dan Promotion
+### 7.3 Review Pemohon dan Promotion
 
 ```mermaid
 flowchart TD
-    DELIVERY([Draft diterima User Induk]) --> REVIEW[Review preview, change set, dan unresolved issue]
-    REVIEW --> DECISION{Keputusan User Induk}
+    DELIVERY([Draft diterima pemohon]) --> ACCESS{Pemohon masih berhak mengubah Local File?}
+    ACCESS -- Ya --> REVIEW[Review preview, change set, dan unresolved issue]
+    ACCESS -- Tidak --> TAKEOVER[User Induk mengambil alih keputusan; catat audit]
+    TAKEOVER --> REVIEW
+    REVIEW --> DECISION{Keputusan pemohon berwenang atau User Induk pengambil alih}
     DECISION -- Minta revisi --> QUOTA{Revisi tersedia?}
     QUOTA -- Ya --> FEEDBACK[Kirim feedback]
     FEEDBACK --> WORK[Konsultan memperbaiki working copy]
     WORK --> DELIVERY
     QUOTA -- Tidak --> EXTRA[Order tambahan atau perubahan scope]
     DECISION -- Tolak --> REJECT[Working copy tidak dipromosikan]
-    DECISION -- Setujui --> VALIDATE[Validasi version dan conflict]
+    DECISION -- Setujui --> VALIDATE[Validasi identitas, hak ubah, tenant, delivery, version, dan conflict]
     VALIDATE --> PROMOTE[Promote transactionally]
     PROMOTE --> VERSION[Buat Local File version baru]
     VERSION --> GENERATE[Generate DOCX/PDF sesuai hak paket]
     GENERATE --> COMPLETE([COMPLETED])
 ```
 
-Promotion hanya dapat dipicu oleh User Induk. Karyawan dan Konsultan tidak dapat mengganti Local File utama.
+Pemohon dapat meminta revisi atau menyetujui hasil jika ia User Induk atau Karyawan dengan penugasan aktif dan hak ubah Local File. Jika hak Karyawan pemohon dicabut, User Induk dapat mengambil alih keputusan; backend mencatat pelaku, alasan pengambilalihan, waktu, dan delivery yang disetujui. Karyawan tanpa hak ubah dan Konsultan tidak dapat menyetujui atau mengganti Local File utama. Setelah persetujuan, sistem menerapkan snapshot delivery sebagai versi baru secara transaksional dan idempotent, tanpa menimpa versi lama. Di UI tindakan ini bernama **Terapkan sebagai versi baru**.
 
 ## 8. Status Request dan Transisi
 
@@ -394,11 +398,13 @@ Dokumen, komentar, review, working copy, dan hasil tetap dimiliki organisasi. Pe
 - Assignment ditolak dapat diberikan kepada Konsultan lain.
 - ETA dan seluruh perubahannya terlihat oleh pengguna.
 - Review delivery immutable dan memiliki summary per bab.
+- Status komentar dicatat pada `review_comment_status_history`; `review_delivery_comments` membekukan isi dan status komentar saat delivery, sehingga edit berikutnya tidak mengubah delivery lama.
 - Anchor lama tetap mengarah ke document version asal.
 - Review ulang ditolak ketika revisi habis.
 - Review Tambahan menghasilkan order dan payment baru.
 - Working copy tidak menimpa Local File utama.
-- Promotion hanya dapat dilakukan setelah persetujuan User Induk.
+- Delivery Penyusunan Penuh membuat revision baru pada `consultation_workspace_deliveries` dengan snapshot versi workspace dan file hasil; revisi berikutnya tidak menimpa delivery lama.
+- Promotion hanya dapat dilakukan setelah persetujuan pemohon yang masih berhak mengubah Local File atau User Induk yang mengambil alih karena hak pemohon dicabut; identitas pemberi persetujuan dan delivery dicatat.
 - Refund berhasil mencabut scoped access tepat satu kali.
 - Seluruh perubahan penting memiliki audit trail.
 

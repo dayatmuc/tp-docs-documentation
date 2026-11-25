@@ -351,7 +351,7 @@ flowchart TB
     WAIT["UCN-11.7<br/>Menunggu Keputusan User Induk"]
     REVISION["UCN-11.E1<br/>Menyerahkan Revisi"]
     EXHAUSTED["UCN-11.E2<br/>Revisi Habis"]
-    PROMOTE["UCN-11.E3<br/>Promotion oleh User Induk"]
+    PROMOTE["UCN-11.E3<br/>Promotion setelah persetujuan pemohon berwenang"]
 
     UCN11 -. "&lt;&lt;include&gt;&gt;" .-> CHECK
     UCN11 -. "&lt;&lt;include&gt;&gt;" .-> SUMMARY
@@ -517,7 +517,7 @@ flowchart TB
 | UCN-11.7 | &nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UCN-11_ | Menunggu keputusan User Induk | [User Induk dapat menyetujui hasil atau menggunakan revisi yang masih tersedia. Kondisi/relasi: Handoff pengguna.] | [-] | [-] |
 | UCN-11.E1 | &nbsp;&nbsp;&nbsp;&nbsp;└── _extend dari UCN-11_ | Menyerahkan revisi working copy | [Konsultan memperbaiki working copy berdasarkan feedback jika revisi masih termasuk order. Kondisi/relasi: `extend` UCN-11.] | [-] | [-] |
 | UCN-11.E2 | &nbsp;&nbsp;&nbsp;&nbsp;└── _extend dari UCN-11_ | Revisi habis | [Permintaan tambahan tidak dikerjakan sebelum terdapat order baru yang sah. Kondisi/relasi: Exception.] | [-] | [-] |
-| UCN-11.E3 | &nbsp;&nbsp;&nbsp;&nbsp;└── _extend dari UCN-11_ | Promotion oleh User Induk | [Setelah disetujui, sistem mempromosikan hasil menjadi versi Local File baru; Konsultan tidak melakukan promotion. Kondisi/relasi: Handoff pengguna.] | [-] | [-] |
+| UCN-11.E3 | &nbsp;&nbsp;&nbsp;&nbsp;└── _extend dari UCN-11_ | Promotion setelah persetujuan pemohon berwenang | [Setelah pemohon yang masih berhak mengubah Local File atau User Induk pengambil alih menyetujui delivery, sistem menerapkan hasil sebagai versi Local File baru; Konsultan tidak melakukan promotion. Kondisi/relasi: Handoff pengguna.] | [-] | [-] |
 | **UCN-12** | **`[AKTOR DIRECT — KONSULTAN]`** | **Mengelola Profil dan Ketersediaan** | [Menjaga informasi profesional dan kapasitas kerja Konsultan tetap mutakhir. Trigger: Konsultan membuka menu Profil dan Ketersediaan. Prasyarat: Sesi Konsultan aktif. Hasil: Perubahan yang diperbolehkan tersimpan dan digunakan sebagai informasi assignment.] | UCN-12.1, UCN-12.4, dan UCN-12.5 | UCN-12.2, UCN-12.3, UCN-12.E1, dan UCN-12.E2 |
 | UCN-12.1 | &nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UCN-12_ | Melihat profil profesional | [Menampilkan nama, gelar, biodata, keahlian, status akun, dan kapasitas. Kondisi/relasi: `include` UCN-12.] | [-] | [-] |
 | UCN-12.2 | &nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UCN-12_ | Memperbarui biodata | [Konsultan memperbarui informasi profesional yang diizinkan. Kondisi/relasi: Aktivitas langsung.] | [-] | [-] |
@@ -538,7 +538,7 @@ flowchart TB
 | Memberikan highlight, komentar, dan balasan | Mengelola anggota organisasi pelanggan |
 | Menerbitkan review dan ringkasan per bab | Mengubah dokumen asli pada layanan Review |
 | Memeriksa versi baru dalam review ulang | Memindahkan highlight otomatis ke versi baru |
-| Mengubah working copy Penyusunan Penuh | Mempromosikan working copy tanpa persetujuan User Induk |
+| Mengubah working copy Penyusunan Penuh | Mempromosikan working copy tanpa persetujuan pemohon berwenang atau User Induk pengambil alih |
 | Memperbarui profil dan ketersediaan | Mengubah katalog, harga, SLA, atau keahlian tanpa Admin |
 
 ## 4. Status yang Digunakan Konsultan
@@ -611,6 +611,6 @@ Hubungan pada tabel ini adalah perpindahan proses antaraktor, bukan relasi UML `
 - Delivery yang diterbitkan tidak dapat diubah langsung.
 - Review ulang menggunakan versi dan anchor baru tanpa memindahkan highlight lama.
 - Kuota revisi tidak dapat digunakan lebih dari jumlah snapshot order.
-- Working copy tidak mengubah Local File sebelum disetujui User Induk.
+- Working copy tidak mengubah Local File sebelum disetujui pemohon berwenang atau User Induk pengambil alih.
 - Pencabutan assignment menghentikan akses pada request berikutnya dan sesi viewer aktif.
 - Seluruh visual Mermaid dapat dirender tanpa parse error.

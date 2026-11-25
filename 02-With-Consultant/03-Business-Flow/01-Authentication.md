@@ -2,7 +2,7 @@
 
 ## 1. Tujuan dan Cakupan
 
-Dokumen ini menjelaskan flow autentikasi lengkap untuk **User Induk**, **Karyawan**, dan **Administrator**, meliputi registrasi, verifikasi email, login, MFA, lupa password, pengelolaan sesi, serta logout.
+Dokumen ini menjelaskan flow autentikasi **User Induk**, **Karyawan**, dan **Administrator**, meliputi registrasi, verifikasi email, login, MFA, lupa password, pengelolaan sesi, serta logout. **Konsultan** merupakan aktor keempat dengan undangan internal dan MFA wajib; alur aktivasi dan login khusus Konsultan dijelaskan pada [Consultant Workflow](./09-Consultant-Workflow.md#3-onboarding-dan-autentikasi).
 
 User Induk dan Karyawan menggunakan mekanisme autentikasi akun yang sama. Perbedaannya:
 

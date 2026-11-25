@@ -391,11 +391,11 @@ Bagian berikut menjelaskan tabel tambahan khusus layanan Konsultan pada skema da
 | --- | --- | --- |
 | Konsultan | `consultant_invitations`, `consultant_profiles`, `consultant_availabilities` | Onboarding aman, status, keahlian, kapasitas, dan availability |
 | Katalog | `consultation_services`, `consultation_service_versions` | Produk jasa dan version immutable harga/SLA/revisi |
-| Request | `consultation_requests`, `consultation_request_status_history` | Order, tenant, document version, snapshot ketentuan, serta status |
+| Request dan pembayaran | `consultation_requests`, `consultation_request_status_history`, `consultation_request_payments` | Order, snapshot ketentuan, riwayat seluruh payment attempt, serta status |
 | Quotation | `consultation_quotations` | Harga final Penyusunan Penuh yang ditentukan Admin |
 | Assignment/SLA | `consultation_assignments`, `consultation_sla_events` | Konsultan terpilih, scoped access, ETA, pause, dan extension |
-| Review | `consultation_rounds`, `document_preview_blocks`, `review_comments`, `review_comment_anchors`, `review_comment_replies`, `review_deliveries` | Version review, semantic preview, highlight, thread, dan summary |
-| Penyusunan Penuh | `consultation_workspaces`, `consultation_change_sets` | Structured working copy dan histori perubahan |
+| Review | `consultation_rounds`, `document_preview_blocks`, `review_comments`, `review_comment_status_history`, `review_comment_anchors`, `review_comment_replies`, `review_deliveries`, `review_delivery_comments` | Version review, semantic preview, status history, thread, dan snapshot delivery |
+| Penyusunan Penuh | `consultation_workspaces`, `consultation_change_sets`, `consultation_workspace_deliveries` | Structured working copy, baseline, delivery immutable, dan promotion |
 
 ### Katalog dan Harga
 
@@ -412,13 +412,17 @@ Bagian berikut menjelaskan tabel tambahan khusus layanan Konsultan pada skema da
 - Status request: `DRAFT`, `AWAITING_QUOTATION`, `REVISION_REQUESTED`, `QUOTED`, `AWAITING_PAYMENT`, `PAID`, `PENDING_ASSIGNMENT`, `ASSIGNED`, `IN_PROGRESS`, `WAITING_FOR_CLIENT`, `REVIEW_DELIVERED`, `AWAITING_RESUBMISSION`, `RE_REVIEW`, `COMPLETED`, `REJECTED`, `CANCELLED`, `REFUND_PROCESSING`, dan `REFUNDED`.
 - Request selalu membawa `organization_id`, `local_file_id`, dan `source_document_version_id`.
 - Karyawan harus mempunyai assignment baseline yang aktif pada Local File.
-- `payment_id` harus berstatus `PAID` sebelum assignment.
+- Satu request memiliki banyak `consultation_request_payments` bernomor attempt unik; status pembayaran berasal dari `payments`, termasuk gagal, kedaluwarsa, dibatalkan, dan berhasil. Hanya payment `PAID` yang sah dan belum pernah mengaktifkan request dapat berstatus pemenang aktivasi sebelum assignment.
+- Satu attempt current per request dan satu `activated_at` per request ditegakkan dengan partial unique index pada migration; verifikasi webhook mengunci request dan payment dalam transaksi, menggunakan idempotency key, sehingga retry tidak membuat aktivasi atau assignment ganda. `consultation_requests.payment_id` tidak digunakan lagi sebagai sumber paralel.
 - Konsultan tidak menjadi membership organisasi.
 - Scoped access berasal dari `consultation_assignments` dan berakhir saat revoke, reassign, complete, atau expiry.
+- `previous_assignment_id` menghubungkan pengganti dengan assignment lama pada request yang sama; `revoke_reason` dan assignment lama tetap tersimpan. Reassignment mencabut akses lama sebelum akses baru aktif.
 
 ### Comment Anchor
 
 Anchor terdiri atas document version, preview block, section, block key, offset, selected text, serta hash. Offset divalidasi terhadap `content_hash`; perubahan content menyebabkan selection harus dibuat ulang.
+
+`review_comment_status_history` menambahkan transisi append-only dengan status dari enum `comment_status`; perubahan status pada komentar dan penambahan riwayat dilakukan dalam satu transaksi. `review_delivery_comments` membekukan body, kategori, severity, status, anchor, dan nomor versi komentar saat delivery diterbitkan. FK ke komentar dipakai untuk lineage, bukan untuk membaca isi delivery lama. Delivery, snapshot komentar, checksum, dan file hasil yang telah terbit tidak dapat di-update atau di-delete melalui aplikasi; koreksi membuat revision baru. Aturan append-only dipertegas dengan permission/trigger pada migration production.
 
 ### Revision
 
@@ -430,14 +434,22 @@ Anchor terdiri atas document version, preview block, section, block key, offset,
 ### Working Copy
 
 - `working_data` adalah structured snapshot terpisah.
+- `baseline_document_version_id` wajib menunjuk versi sumber yang sama dengan request; `promoted_document_version_id` nullable sampai promotion berhasil dan hanya boleh menunjuk versi hasil pada organisasi dan Local File yang benar.
 - `version` digunakan untuk optimistic concurrency.
 - `consultation_change_sets` menyimpan perubahan terarah tanpa menulis isi penuh ke audit log.
-- Promotion menghasilkan Local File/document version baru melalui transaction application layer.
+- `consultation_workspace_deliveries` membekukan `snapshot_data`, versi workspace, ringkasan perubahan, catatan, checksum, dan file delivery pada tiap revision. Perubahan working copy setelah delivery tidak mengubah revision lama; revisi berikutnya membuat baris baru. `source_document_version_id` mengidentifikasi baseline dokumen yang diserahkan bersama snapshot hasil kerja; versi hasil promotion dicatat pada workspace setelah approval.
+- `consultation_requests.requested_by_user_id` menyimpan pemohon. `consultation_workspaces.approved_delivery_id`, `approved_by_user_id`, dan `approved_at` menyimpan delivery immutable yang disetujui, aktor, dan waktu keputusan. Ketiganya kosong sebelum approval dan terisi bersama dalam transaksi; delivery harus milik workspace dan request yang sama. Approval baru untuk delivery revisi mengganti referensi approval sebelumnya tanpa mengubah delivery historis, dengan peristiwa keputusan tetap append-only di `audit_logs`.
+- Pemohon Karyawan hanya dapat memberi feedback dan approval bila assignment dan hak ubah Local File masih aktif. Bila haknya dicabut, User Induk dapat mengambil alih; `audit_logs` mencatat pemohon asal, pengambil alih, alasan, delivery, dan waktu. Approval dan promotion memvalidasi kembali organisasi, Local File, baseline, serta versi workspace; stale approval tidak berlaku untuk delivery revisi baru.
+- Promotion menghasilkan Local File/document version baru melalui transaction application layer dan menulis `promoted_document_version_id` setelah versi tersebut berhasil dibuat, tanpa mengubah delivery lama.
+- Promotion hanya menggunakan delivery yang tercatat di `approved_delivery_id`. Penguncian workspace dan idempotency memastikan retry menghasilkan versi yang sama; constraint aplikasi/database memastikan `promoted_document_version_id` hanya diisi sekali untuk request tersebut.
 
 ### Constraint Migration
 
 - Satu service version current per service menggunakan partial unique index.
 - Satu assignment `PENDING`/`ACCEPTED` aktif per request.
+- Satu payment attempt current dan satu attempt pemenang aktivasi per request menggunakan partial unique index; `payment_id` unik di junction dan nomor attempt unik per request.
+- `review_delivery_comments` hanya boleh memuat komentar dari round delivery yang sama; referensi request, workspace, baseline, file delivery, dan promoted version harus berada pada tenant dan Local File yang sesuai. Validasi lintas tabel dilakukan dalam transaksi application layer dan, bila memungkinkan, constraint/trigger migration.
+- Record delivery dan snapshot komentar yang sudah terbit bersifat append-only; database role aplikasi tidak mendapat izin update/delete untuk record tersebut atau trigger menolaknya.
 - `display_price_minor > 0` untuk `FIXED`.
 - `minimum_price_minor > 0` untuk `STARTING_FROM`.
 - `start_offset >= 0` dan `end_offset > start_offset`.

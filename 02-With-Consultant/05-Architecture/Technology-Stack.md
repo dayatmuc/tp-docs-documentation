@@ -813,7 +813,7 @@ REFUND_ADMIN_LIMIT_IDR=
 ### 15.1 Authentication
 
 - Password di-hash menggunakan Argon2id atau algoritma adaptif setara.
-- User Induk dan Administrator wajib MFA.
+- User Induk, Administrator, dan Konsultan wajib MFA.
 - Karyawan dapat menggunakan MFA opsional pada versi awal.
 - Reset password menggunakan token sekali pakai, berumur pendek, dan disimpan dalam bentuk hash.
 - Session idle berakhir setelah 30 menit sesuai NFR.

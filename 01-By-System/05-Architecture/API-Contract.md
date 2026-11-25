@@ -175,7 +175,7 @@ type LoginResponse =
 | PATCH | `/api/me` | Ya | Update nama, telepon, jabatan, locale |
 | POST | `/api/me/email-change` | Re-auth | Memulai perubahan email |
 | POST | `/api/me/email-change/verify` | Token | Verifikasi email baru |
-| POST | `/api/me/avatar/upload-url` | Ya | Signed upload avatar |
+| POST | `/api/me/avatar` | Ya | Upload avatar melalui NestJS dan validasi file |
 | DELETE | `/api/me/avatar` | Ya | Hapus avatar |
 | GET | `/api/me/notifications` | Ya | Notifikasi sendiri |
 | PATCH | `/api/me/notifications/{notificationId}/read` | Ya | Tandai dibaca |
@@ -253,7 +253,7 @@ Checkout dan quotation memakai endpoint yang ada. Backend mengembalikan original
 | GET | `/api/organizations/{organizationId}/refunds` | Owner/payer | Daftar refund |
 | POST | `/api/organizations/{organizationId}/refunds` | Owner/payer | Ajukan refund |
 | GET | `/api/organizations/{organizationId}/refunds/{refundId}` | Owner/payer | Status refund |
-| POST | `/api/organizations/{organizationId}/refunds/{refundId}/evidence/upload-url` | Owner/payer | Upload bukti |
+| POST | `/api/organizations/{organizationId}/refunds/{refundId}/evidence` | Owner/payer | Upload bukti melalui NestJS setelah validasi refund dan file |
 | DELETE | `/api/organizations/{organizationId}/refunds/{refundId}` | Requester | Batalkan sebelum review bila diizinkan |
 
 ### 11.2.1 Hosted Checkout Response
@@ -293,7 +293,7 @@ type HostedCheckoutResponse = {
 | DELETE | `/api/files/{fileId}` | Resource owner | Hapus logical sesuai aturan |
 | GET | `/api/files/{fileId}/processing-status` | Resource permission | Scan/extraction status |
 
-Upload memakai field file serta metadata `purpose`, organization context, dan target resource. Backend memvalidasi MIME, ekstensi, ukuran, checksum, lalu menyimpan konten sebagai chunk `bytea` 1 MiB. File baru berstatus lengkap setelah seluruh chunk dan checksum tervalidasi. Respons konten mengirim `Content-Type`, `Content-Length`, `Content-Disposition`, dan checksum sebagai `ETag`.
+Upload memakai field file serta metadata `purpose`, organization context, dan target resource. Backend mengautentikasi pengguna, memvalidasi role, tenant, assignment Local File jika berlaku, MIME, ekstensi, ukuran maksimal 50 MB, checksum, dan malware scan, lalu menyimpan konten sebagai chunk `bytea` 1 MiB di PostgreSQL tanpa memuat seluruh file ke memori. File baru berstatus lengkap setelah seluruh chunk dan checksum tervalidasi. Preview dan download melalui NestJS mengulang pemeriksaan akses pada setiap request; akses file dicatat pada audit log. Respons konten mengirim `Content-Type`, `Content-Length`, `Content-Disposition`, dan checksum sebagai `ETag`.
 
 ## 13. Local File Core
 
@@ -519,7 +519,7 @@ Respons perbandingan memuat `fromVersionId`, `toVersionId`, `changedSections`, s
 | GET | `/api/admin/withdrawals/{withdrawalId}` | Admin | Status payout, ETA, dan failure code aman |
 | GET | `/api/admin/payment-disputes` | Admin | Daftar dispute dan tenggat tindakan |
 | GET | `/api/admin/payment-disputes/{disputeId}` | Admin | Detail dispute serta evidence requirement |
-| POST | `/api/admin/payment-disputes/{disputeId}/evidences/upload-url` | Admin + re-auth | Upload evidence privat |
+| POST | `/api/admin/payment-disputes/{disputeId}/evidences` | Admin + re-auth | Upload evidence privat melalui NestJS |
 | POST | `/api/admin/payment-disputes/{disputeId}/submit-evidence` | Admin + re-auth | Kirim evidence sesuai ketentuan provider |
 | POST | `/api/admin/payment-disputes/{disputeId}/accept` | Admin + dual approval | Terima dispute bila kebijakan mengizinkan |
 | GET | `/api/admin/users` | Admin | Daftar metadata pengguna |

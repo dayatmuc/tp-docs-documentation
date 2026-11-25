@@ -167,7 +167,7 @@ Detail kebutuhan nonfungsional tersedia pada [Non-Functional Requirements](./Non
 - [Use Case User Induk](../02-Use-Case/Organization-Owner.md)
 - [Use Case Karyawan](../02-Use-Case/Employee.md)
 - [Use Case Administrator](../02-Use-Case/Admin.md)
-- [Use Case Diagram](../02-Use-Case/Use-Case-Diagram.drawio)
+- [Diagram use case User Induk](../02-Use-Case/Organization-Owner.md), [Karyawan](../02-Use-Case/Employee.md), dan [Administrator](../02-Use-Case/Admin.md)
 
 ## 8. Business Rules
 

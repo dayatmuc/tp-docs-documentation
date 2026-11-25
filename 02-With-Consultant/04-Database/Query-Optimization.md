@@ -109,6 +109,10 @@ Document generation harus membaca snapshot lengkap yang telah dibentuk mapper, b
 
 Daftar versi satu Local File memakai `(local_file_id, version_number DESC, id)` dengan cursor dan batas halaman; jangan memuat seluruh versi beserta snapshot JSON dalam daftar. Untuk perbandingan, ambil tepat dua `document_versions` berdasarkan ID, batasi dengan `organization_id` dan `local_file_id`, kemudian ambil dua `document_snapshots` lewat `generation_id` pada query terpisah. Periksa kedua versi dan izin dokumen sebelum membaca `snapshot_data`; hindari N+1 dan `SELECT *` pada daftar. Hitung diff per bagian di application layer tanpa menyimpan salinan snapshot atau hasil diff permanen.
 
+### 3.4 Query riwayat konsultasi dan delivery
+
+Daftar payment attempt satu request dimulai dari `consultation_request_payments(request_id, attempt_number)` dan mengambil status dari `payments` dalam satu join/batch. Detail review delivery membaca snapshot `review_delivery_comments` berdasarkan `delivery_id`, bukan body komentar terkini; pagination thread operasional tetap terpisah. Daftar `consultation_workspace_deliveries` mengambil metadata revision tanpa `snapshot_data` dan isi file, lalu detail revision mengambil satu snapshot setelah validasi tenant dan request. Query baseline dan promoted version dibatasi request/organisasi yang sama.
+
 ## 4. Query Plan per Endpoint Utama
 
 | Kebutuhan | Pola query | Target jumlah query |

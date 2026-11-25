@@ -729,7 +729,7 @@ DOCX tetap menjadi hasil utama. Preview HTML digunakan untuk membaca, menyorot t
 - Highlight tidak dipindahkan otomatis ke document version baru.
 - Review ulang membuat round dan anchor baru.
 - Konsultan layanan Review tidak mengubah snapshot atau DOCX asli.
-- Penyusunan Penuh dilakukan pada working copy, kemudian dipromosikan hanya setelah disetujui User Induk.
+- Penyusunan Penuh dilakukan pada working copy, kemudian diterapkan sebagai versi Local File baru hanya setelah disetujui pemohon yang masih berhak mengubah dokumen atau User Induk pengambil alih bila hak pemohon dicabut.
 - File, preview, delivery, dan streaming konten mengikuti scoped assignment serta audit log.
 
 Detail tersedia pada [Document Review Architecture](./Document-Review-Architecture.md).

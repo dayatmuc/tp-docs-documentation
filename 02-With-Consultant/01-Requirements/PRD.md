@@ -136,7 +136,7 @@ Detail aktivitas aktor tersedia pada:
 | **Subscription & Billing**      | Paket Free, Basic, Professional, Enterprise/Custom, pembayaran, refund, kuota dokumen, kursi, dan add-on.                                                 |
 | **Consultation Services**       | Katalog jasa, order per document version, quotation, payment, assignment, SLA, revisi, dan refund konsultasi.                                             |
 | **Document Review**             | Preview HTML, highlight, anchor, komentar, thread, ringkasan per bab, review ulang, dan delivery immutable.                                               |
-| **Full Preparation Workspace**  | Working copy terpisah, change set, preview draft, persetujuan User Induk, dan promotion menjadi versi Local File baru.                                    |
+| **Full Preparation Workspace**  | Working copy terpisah, change set, preview draft, persetujuan pemohon yang masih berhak mengubah Local File (atau pengambilalihan User Induk bila akses pemohon dicabut), dan promotion menjadi versi Local File baru. |
 | **Comparison Library**          | Penyajian data pembanding tersimpan dan rentang kuartil tanpa membuka file sumber yang tidak diizinkan.                                                   |
 | **Administration & Operations** | Dashboard operasional, maintenance mode, pengaturan dasar, langganan, akun, Enterprise/Custom, keamanan, integrasi, backup, retensi, dan laporan agregat. |
 
@@ -176,7 +176,7 @@ Detail kebutuhan nonfungsional tersedia pada [Non-Functional Requirements](./Non
 - [Use Case Karyawan](../02-Use-Case/Employee.md)
 - [Use Case Konsultan](../02-Use-Case/Consultant.md)
 - [Use Case Administrator](../02-Use-Case/Admin.md)
-- [Use Case Diagram](../02-Use-Case/Use-Case-Diagram.drawio)
+- [Diagram use case User Induk](../02-Use-Case/Organization-Owner.md), [Karyawan](../02-Use-Case/Employee.md), dan [Administrator](../02-Use-Case/Admin.md), serta [Konsultan](../02-Use-Case/Consultant.md)
 
 ## 8. Business Rules
 
@@ -225,7 +225,7 @@ Sistem dapat diterima apabila:
 - Pengguna tidak dapat mengakses data organisasi lain melalui UI, API, URL file, cache, atau background job.
 - Karyawan tidak dapat membuka dokumen yang tidak ditugaskan.
 - Administrator tidak dapat membaca atau mengubah isi dokumen pelanggan.
-- MFA wajib diterapkan kepada User Induk dan Administrator.
+- MFA wajib diterapkan kepada User Induk, Administrator, dan Konsultan. Karyawan mengikuti kebijakan MFA opsional pada versi awal.
 - Perhitungan kuota, kursi, add-on, dan masa aktif menghasilkan nilai yang benar.
 - Generate dokumen hanya berlangsung setelah validasi dan tidak mengurangi kuota apabila proses pembuatan dokumen gagal.
 - File berbahaya dikarantina dan tidak dapat diproses.
@@ -285,7 +285,7 @@ Varian ini menambahkan layanan Konsultan manusia pada seluruh kemampuan inti TP 
 
 - Katalog jasa konsultasi yang nama, harga, currency, SLA, revisi, dan statusnya dikelola Administrator.
 - Review Konsultan TP dengan preview HTML, highlight, komentar, thread, ringkasan per bab, dan review ulang.
-- Penyusunan Penuh menggunakan quotation, payment, assignment, working copy, change set, delivery, serta persetujuan User Induk.
+- Penyusunan Penuh menggunakan quotation, payment, assignment, working copy, change set, delivery, serta persetujuan pemohon yang masih berhak mengubah Local File. Bila hak pemohon dicabut, User Induk dapat mengambil alih keputusan dengan jejak audit. Review Konsultan hanya memberi komentar; pengguna memperbaiki data sendiri tanpa promotion.
 - Harga dan SLA disalin sebagai snapshot order agar perubahan katalog tidak mengubah order lama.
 - Review tambahan setelah kuota revisi habis menggunakan order dan pembayaran baru.
 - Karyawan hanya dapat membeli layanan untuk dokumen yang ditugaskan dan hanya melihat transaksi konsultasi yang dibuatnya.

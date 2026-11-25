@@ -600,7 +600,7 @@ flowchart TB
 | UI-C06 | Melihat highlight/komentar | Melihat preview, summary per bab, dan thread |
 | UI-C07 | Membalas/menindaklanjuti | Reply dan status `ADDRESSED_BY_CLIENT` |
 | UI-C08 | Review ulang | Generate versi baru dan resubmit jika revisi tersedia |
-| UI-C09 | Menyetujui working copy | Melihat change set dan promotion menjadi versi baru |
+| UI-C09 | Menyetujui working copy | Untuk request sendiri, melihat change set dan menyetujui penerapan sebagai versi baru; dapat mengambil alih keputusan request Karyawan bila hak ubah pemohon dicabut, dengan jejak audit |
 | UI-C10 | Review tambahan | Membuat order baru ketika revision quota habis |
 
 User Induk dapat melihat seluruh request dan transaksi konsultasi organisasi.

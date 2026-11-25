@@ -2,7 +2,7 @@
 
 ## 1. Tujuan
 
-Dokumen ini memberikan gambaran tingkat tinggi perjalanan tiga aktor TP Docs, yaitu **User Induk**, **Karyawan**, dan **Administrator**, sejak mengakses sistem sampai menyelesaikan aktivitas dan keluar dari sistem.
+Dokumen ini memberikan gambaran tingkat tinggi perjalanan empat aktor TP Docs, yaitu **User Induk**, **Karyawan**, **Administrator**, dan **Konsultan**, sejak mengakses sistem sampai menyelesaikan aktivitas dan keluar dari sistem.
 
 Overview hanya menampilkan proses utama, titik keputusan, hasil alternatif, dan perpindahan tanggung jawab antarpihak. Rincian validasi field, aturan status, proses background, serta exception teknis dijelaskan dalam dokumen business flow terpisah.
 
@@ -396,5 +396,5 @@ flowchart TD
 | Assignment | Administrator | Konsultan |
 | Review delivery | Konsultan | User |
 | Resubmission | User | Konsultan |
-| Working-copy approval | Konsultan | User Induk |
+| Working-copy approval | Konsultan menyerahkan hasil | Pemohon dengan hak ubah aktif; User Induk mengambil alih bila hak pemohon dicabut |
 | Quotation | Administrator | User |

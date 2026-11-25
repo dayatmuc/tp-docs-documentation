@@ -129,7 +129,7 @@ Error tidak mengungkap secret, stack trace, query, provider response mentah, ata
 | Konsultasi | Semua organisasi | Request miliknya/dokumen ditugaskan | Assignment miliknya | Kelola platform |
 | Harga/payment | Ya | Payment miliknya | Tidak | Sesuai kewenangan |
 | Katalog konsultasi | Baca | Baca | Tidak | Kelola |
-| Working copy approval | Ya | Tidak | Menyerahkan | Operasional |
+| Working copy approval | Request sendiri; ambil alih bila hak pemohon dicabut | Request sendiri dengan penugasan dan hak ubah aktif | Menyerahkan hasil, tidak menyetujui | Operasional |
 
 ## 7. Public dan System Endpoints
 
@@ -181,7 +181,7 @@ type LoginResponse =
 | PATCH | `/api/me` | Ya | Update nama, telepon, jabatan, locale |
 | POST | `/api/me/email-change` | Re-auth | Memulai perubahan email |
 | POST | `/api/me/email-change/verify` | Token | Verifikasi email baru |
-| POST | `/api/me/avatar/upload-url` | Ya | Signed upload avatar |
+| POST | `/api/me/avatar` | Ya | Upload avatar melalui NestJS dan validasi file |
 | DELETE | `/api/me/avatar` | Ya | Hapus avatar |
 | GET | `/api/me/notifications` | Ya | Notifikasi sendiri |
 | PATCH | `/api/me/notifications/{notificationId}/read` | Ya | Tandai dibaca |
@@ -257,7 +257,7 @@ Checkout dan quotation memakai endpoint yang ada. Backend mengembalikan original
 | GET | `/api/organizations/{organizationId}/refunds` | Owner/payer | Daftar refund |
 | POST | `/api/organizations/{organizationId}/refunds` | Owner/payer | Ajukan refund |
 | GET | `/api/organizations/{organizationId}/refunds/{refundId}` | Owner/payer | Status refund |
-| POST | `/api/organizations/{organizationId}/refunds/{refundId}/evidence/upload-url` | Owner/payer | Upload bukti |
+| POST | `/api/organizations/{organizationId}/refunds/{refundId}/evidence` | Owner/payer | Upload bukti melalui NestJS setelah validasi refund dan file |
 | DELETE | `/api/organizations/{organizationId}/refunds/{refundId}` | Requester | Batalkan sebelum review bila diizinkan |
 
 ### 11.2.1 Hosted Checkout Response
@@ -297,7 +297,7 @@ type HostedCheckoutResponse = {
 | DELETE | `/api/files/{fileId}` | Resource owner | Hapus logical sesuai aturan |
 | GET | `/api/files/{fileId}/processing-status` | Resource permission | Scan/extraction status |
 
-Upload memakai field file serta metadata `purpose`, organization context, dan target resource. Backend memvalidasi MIME, ekstensi, ukuran, checksum, lalu menyimpan konten sebagai chunk `bytea` 1 MiB. File baru berstatus lengkap setelah seluruh chunk dan checksum tervalidasi. Respons konten mengirim `Content-Type`, `Content-Length`, `Content-Disposition`, dan checksum sebagai `ETag`.
+Upload memakai field file serta metadata `purpose`, organization context, dan target resource. Backend mengautentikasi pengguna, memvalidasi role, tenant, assignment Local File jika berlaku, MIME, ekstensi, ukuran maksimal 50 MB, checksum, dan malware scan, lalu menyimpan konten sebagai chunk `bytea` 1 MiB di PostgreSQL tanpa memuat seluruh file ke memori. File baru berstatus lengkap setelah seluruh chunk dan checksum tervalidasi. Preview dan download melalui NestJS mengulang pemeriksaan akses pada setiap request; akses file dicatat pada audit log. Respons konten mengirim `Content-Type`, `Content-Length`, `Content-Disposition`, dan checksum sebagai `ETag`.
 
 ## 13. Local File Core
 
@@ -507,11 +507,15 @@ Response katalog hanya memuat data display. Field internal, histori harga, margi
 | POST | `/api/consultation-requests/{requestId}/resubmit` | Owner/Requester | Ajukan version baru |
 | GET | `/api/consultation-requests/{requestId}/revision-balance` | Owner/Requester | Revisi terpakai/tersisa |
 | POST | `/api/consultation-requests/{requestId}/additional-review` | Owner/Requester | Buat order tambahan |
-| GET | `/api/consultation-requests/{requestId}/workspace-deliveries` | Owner | Draft Penyusunan Penuh |
-| GET | `/api/consultation-requests/{requestId}/workspace-deliveries/{deliveryId}` | Owner | Detail preview/change set |
-| POST | `/api/consultation-requests/{requestId}/workspace-deliveries/{deliveryId}/feedback` | Owner | Minta revisi |
-| POST | `/api/consultation-requests/{requestId}/workspace-deliveries/{deliveryId}/approve` | Owner + re-auth | Setujui |
-| POST | `/api/consultation-requests/{requestId}/workspace/promote` | Owner + idempotency | Promotion |
+| GET | `/api/consultation-requests/{requestId}/workspace-deliveries` | Owner/Requester | Draft Penyusunan Penuh; requester hanya request sendiri dengan penugasan aktif |
+| GET | `/api/consultation-requests/{requestId}/workspace-deliveries/{deliveryId}` | Owner/Requester | Detail preview/change set sesuai akses request |
+| POST | `/api/consultation-requests/{requestId}/workspace-deliveries/{deliveryId}/feedback` | Requester dengan hak ubah/Owner pengambil alih | Minta revisi |
+| POST | `/api/consultation-requests/{requestId}/workspace-deliveries/{deliveryId}/approve` | Requester dengan hak ubah/Owner pengambil alih + re-auth | Setujui delivery tertentu |
+| POST | `/api/consultation-requests/{requestId}/workspace/promote` | Requester dengan hak ubah/Owner pengambil alih + idempotency | Terapkan sebagai versi baru |
+
+Pada feedback, approval, dan promotion, backend memvalidasi identitas `requested_by_user_id`, organisasi, Local File, penugasan Karyawan beserta hak ubah, delivery dan versi workspace. Owner hanya mengambil alih keputusan request Karyawan bila hak ubah pemohon telah dicabut; alasan dan aktor dicatat dalam audit. Promotion memvalidasi ulang hak dan approval untuk delivery yang sama, menggunakan transaksi dan idempotency agar retry mengembalikan versi hasil yang sama. Konsultan dan Karyawan tanpa hak ubah ditolak.
+
+Histori payment request berasal dari `consultation_request_payments` berurut `attempt_number`; status tiap attempt dibaca dari `payments`. Retry menambah attempt, tidak menimpa yang lama. Webhook yang sah mengaktifkan request sekali melalui lock dan idempotency. Detail delivery Review membaca isi komentar dari `review_delivery_comments` yang dibekukan pada waktu publish, sedangkan detail delivery Penyusunan Penuh membaca snapshot dari `consultation_workspace_deliveries`; perubahan komentar atau workspace berikutnya tidak mengubah respons delivery lama.
 
 ### 21.1 Create Consultation Request
 
@@ -589,7 +593,7 @@ Harga tidak terdapat pada payload.
 | GET | `/api/consultant/workspace-previews/{previewId}` | Active assignment | Status/hasil preview |
 | POST | `/api/consultant/workspaces/{workspaceId}/deliveries` | Active assignment | Serahkan draft |
 | GET | `/api/consultant/workspaces/{workspaceId}/deliveries` | Active assignment | Histori delivery |
-| GET | `/api/consultant/workspaces/{workspaceId}/feedback` | Active assignment | Feedback User Induk |
+| GET | `/api/consultant/workspaces/{workspaceId}/feedback` | Active assignment | Feedback pemohon berwenang atau User Induk pengambil alih |
 | POST | `/api/consultant/workspaces/{workspaceId}/close-response` | Active assignment | Tandai feedback ditangani |
 
 ## 23. Administrator — Dashboard dan Operasional
@@ -639,7 +643,7 @@ Harga tidak terdapat pada payload.
 | GET | `/api/admin/withdrawals/{withdrawalId}` | Admin | Status payout, ETA, dan failure code aman |
 | GET | `/api/admin/payment-disputes` | Admin | Daftar dispute dan tenggat tindakan |
 | GET | `/api/admin/payment-disputes/{disputeId}` | Admin | Detail dispute serta evidence requirement |
-| POST | `/api/admin/payment-disputes/{disputeId}/evidences/upload-url` | Admin + re-auth | Upload evidence privat |
+| POST | `/api/admin/payment-disputes/{disputeId}/evidences` | Admin + re-auth | Upload evidence privat melalui NestJS |
 | POST | `/api/admin/payment-disputes/{disputeId}/submit-evidence` | Admin + re-auth | Kirim evidence sesuai ketentuan provider |
 | POST | `/api/admin/payment-disputes/{disputeId}/accept` | Admin + dual approval | Terima dispute bila kebijakan mengizinkan |
 | GET | `/api/admin/users` | Admin | Daftar metadata pengguna |

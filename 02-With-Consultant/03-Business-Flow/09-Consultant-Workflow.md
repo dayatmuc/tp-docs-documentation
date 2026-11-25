@@ -355,11 +355,13 @@ Konsultan tidak boleh mengedit organisasi, membership, billing, atau data di lua
 7. Kirim kepada User Induk.
 8. Tunggu keputusan User Induk.
 
-Jika User Induk meminta revisi dan kuota tersedia, Konsultan memperbaiki working copy yang sama lalu membuat delivery revision baru. Jika revisi habis, pekerjaan tambahan memerlukan order baru.
+Jika pemohon yang masih berwenang atau User Induk pengambil alih meminta revisi dan kuota tersedia, Konsultan memperbaiki working copy yang sama lalu membuat delivery revision baru. Jika revisi habis, pekerjaan tambahan memerlukan order baru.
+
+Setiap delivery Penyusunan Penuh dibekukan pada `consultation_workspace_deliveries` bersama versi workspace, snapshot data, checksum, dan file hasil. Perubahan berikutnya pada working copy tidak mengubah delivery lama. Workspace tetap mengacu pada baseline document version sampai promotion yang disetujui pemohon berwenang atau User Induk pengambil alih menghasilkan `promoted_document_version_id`.
 
 ### 12.4 Persetujuan dan Promotion
 
-Konsultan tidak melakukan promotion. Setelah User Induk menyetujui:
+Konsultan tidak melakukan promotion. Setelah pemohon yang masih berhak mengubah Local File atau User Induk pengambil alih menyetujui:
 
 - sistem memvalidasi working copy;
 - promotion dilakukan secara transaksional;
@@ -463,7 +465,7 @@ Metrik operasional dapat mencakup assignment acceptance rate, waktu penerimaan, 
 - Review ulang menggunakan version serta anchor baru.
 - Revisi tidak dapat digunakan melebihi snapshot.
 - Working copy tidak mengubah Local File utama.
-- Promotion hanya dilakukan setelah persetujuan User Induk.
+- Promotion hanya dilakukan setelah persetujuan pemohon berwenang atau User Induk pengambil alih, dengan identitas dan alasan pengambilalihan tercatat.
 - Revoke/reassign/refund menutup akses.
 - Retry tidak menggandakan komentar, delivery, atau pemakaian revisi.
 

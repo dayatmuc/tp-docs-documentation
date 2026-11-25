@@ -33,7 +33,7 @@ Dokumen ini memuat kebutuhan nonfungsional, target layanan, keamanan, retensi, d
 - File dibatasi maksimal 50 MB dan disimpan sebagai chunk `bytea` 1 MiB; daftar dokumen dan dashboard tidak boleh mengambil isi chunk.
 - Upload dan download melewati NestJS dengan rate limit, concurrency limit, checksum SHA-256, serta validasi tenant dan hak akses.
 - Backup dan restore harus mencakup seluruh chunk dan membuktikan kesamaan checksum file.
-- File hanya dapat diakses melalui URL bertanda tangan dengan masa berlaku singkat.
+- File hanya dapat diakses melalui endpoint NestJS terautentikasi setelah pemeriksaan role, organisasi, penugasan Local File jika berlaku, status scan, dan hak format; backend mengirim konten secara streaming tanpa URL penyimpanan langsung.
 - Upload divalidasi berdasarkan tipe, ukuran, dan ekstensi serta dipindai terhadap malware.
 - File berbahaya dikarantina dan tidak dapat diproses.
 - Secret, API key, token email, dan kredensial pembayaran disimpan pada secret manager, bukan source code.

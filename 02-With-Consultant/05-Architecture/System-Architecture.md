@@ -9,12 +9,13 @@ Urutan aktivitas pengguna dan keputusan bisnis tidak dibahas di sini. Detail ter
 ### 1.1 Keputusan arsitektur utama
 
 
-- User Induk, Karyawan, dan Administrator menggunakan satu aplikasi Next.js.
+- User Induk, Karyawan, Administrator, dan Konsultan menggunakan satu aplikasi Next.js dengan route dan otorisasi sesuai peran.
 - Administrator menggunakan route `/admin/**`, tetapi NestJS tetap menjadi sumber otorisasi utama.
 - Backend menggunakan NestJS modular monolith.
 - PostgreSQL menyimpan data terstruktur dan metadata.
 - Redis dan BullMQ menangani antrean serta pekerjaan asynchronous.
 - Seluruh file permanen disimpan di PostgreSQL sebagai chunk `bytea`; metadata dan isi biner tetap dipisahkan secara logis.
+- Node penyimpanan file pada diagram mewakili tabel `files` dan `file_blob_chunks` di PostgreSQL yang sama, bukan layanan penyimpanan eksternal.
 - Pekerjaan berat dijalankan oleh background worker.
 - Integrasi Resend, Xendit, AI, dan malware scanner menggunakan adapter; file memakai repository PostgreSQL internal.
 - Gemini API dan AI lokal merupakan dua alternatif deployment; implementasi final hanya memilih satu.
@@ -27,7 +28,7 @@ Urutan aktivitas pengguna dan keputusan bisnis tidak dibahas di sini. Detail ter
 | Notasi | Arti |
 | --- | --- |
 | Garis penuh `→` | Komunikasi synchronous atau dependency langsung |
-| Garis putus-putus `⇢` | Pekerjaan asynchronous, signed access, atau alternatif deployment |
+| Garis putus-putus `⇢` | Pekerjaan asynchronous atau alternatif deployment |
 | Garis tebal `⇒` | Webhook dari layanan eksternal |
 | Kotak biru | Aplikasi atau service TP Docs |
 | Kotak hijau | Penyimpanan data |
@@ -46,6 +47,7 @@ flowchart LR
         OWNER["User Induk"]
         EMPLOYEE["Karyawan"]
         ADMIN["Administrator"]
+        CONSULTANT["Konsultan"]
     end
 
     subgraph TPDOCS["TP Docs SaaS"]
@@ -70,6 +72,7 @@ flowchart LR
     OWNER -->|"Portal perusahaan"| WEB
     EMPLOYEE -->|"Portal perusahaan"| WEB
     ADMIN -->|"Route /admin"| WEB
+    CONSULTANT -->|"Portal Konsultan untuk request yang ditugaskan"| WEB
     WEB -->|"HTTPS /api"| API
 
     API --> DB
@@ -88,7 +91,7 @@ flowchart LR
     classDef data fill:#dcfce7,stroke:#16a34a,color:#14532d
     classDef external fill:#ffedd5,stroke:#ea580c,color:#7c2d12
 
-    class OWNER,EMPLOYEE,ADMIN actor
+    class OWNER,EMPLOYEE,ADMIN,CONSULTANT actor
     class WEB,API,WORKER app
     class DB,REDIS,STORAGE data
     class RESEND,XENDIT,AI,MALWARE external
@@ -110,7 +113,7 @@ Diagram container memperlihatkan komponen runtime utama dan jalur komunikasi di 
 
 ```mermaid
 flowchart TB
-    BROWSER["Browser<br/>User Induk, Karyawan, Administrator"]
+    BROWSER["Browser<br/>User Induk, Karyawan, Administrator, Konsultan"]
 
     subgraph EDGE["Edge dan Transport Security"]
         WAF["TLS Termination<br/>WAF atau Reverse Proxy"]
@@ -124,9 +127,9 @@ flowchart TB
     end
 
     subgraph PLATFORM_DATA["Platform Data Services"]
-        POSTGRES[("Managed PostgreSQL<br/>Data dan Metadata")]
+        POSTGRES[("Managed PostgreSQL<br/>Data, Metadata, dan File Biner")]
         REDIS[("Managed Redis<br/>Queue, Lock, Cache")]
-        OBJECT[("PostgreSQL Binary Tables<br/>File Privat")]
+        OBJECT[("PostgreSQL files + file_blob_chunks<br/>Penyimpanan Privat")]
         SECRET["Secret Manager"]
     end
 
@@ -156,7 +159,6 @@ flowchart TB
     WORKER --> SCANNER
     WORKER -->|"Read runtime secret"| SECRET
 
-    BROWSER -.->|"Signed upload atau download terbatas"| OBJECT
 
     classDef browser fill:#f3f4f6,stroke:#4b5563,color:#111827
     classDef app fill:#dbeafe,stroke:#2563eb,color:#172554
@@ -325,9 +327,9 @@ flowchart LR
 
 ### 6.1 Data ownership
 
-- PostgreSQL merupakan sumber kebenaran data bisnis, status, dan metadata.
+- PostgreSQL merupakan sumber kebenaran data bisnis, status, metadata `files`, dan chunk biner `file_blob_chunks`.
 - Redis bukan sumber kebenaran permanen.
-- Isi file biner tidak disimpan dalam PostgreSQL.
+- Isi file biner disimpan pada `file_blob_chunks.content` bertipe `bytea` di PostgreSQL; metadata disimpan terpisah pada `files`.
 - File ID, checksum, MIME type, ukuran, jumlah chunk, tenant, dan status scan disimpan sebagai metadata.
 - Webhook disimpan dan diproses secara idempotent.
 - Setiap background job membawa tenant context dan correlation ID yang tervalidasi.
@@ -554,7 +556,7 @@ flowchart TB
 | Next.js Web | Rendering UI, route, session boundary awal, dan pemanggilan `/api` | Mengakses database atau menyimpan secret provider |
 | NestJS API | Authentication, authorization, tenant validation, business rule, dan kontrak REST | Mempercayai role, harga, tenant, assignment, atau file ID dari frontend tanpa validasi |
 | BullMQ Worker | Menjalankan pekerjaan asynchronous dan retry terkontrol | Menjalankan job tanpa tenant context atau idempotency |
-| PostgreSQL | Data bisnis, metadata, status, dan audit log | Menyimpan file biner Local File |
+| PostgreSQL | Data bisnis, metadata `files`, chunk biner `file_blob_chunks`, status, dan audit log | Mengekspos isi chunk ke browser atau mengambilnya pada query daftar |
 | Redis | Queue, lock sementara, rate-control, dan cache terbatas | Menjadi sumber kebenaran data bisnis permanen |
 | PostgreSQL Binary Repository | Upload, template, benchmarking, DOCX, PDF, review, dan delivery privat | Mengekspos BLOB langsung atau mengambilnya pada query daftar |
 | Document Generator | Menghasilkan DOCX dan PDF dari snapshot data tervalidasi | Mengubah business data sumber |
@@ -598,7 +600,7 @@ flowchart TB
 
 ## 13. Aturan Arsitektur yang Wajib Dijaga
 
-- Frontend hanya berkomunikasi dengan backend melalui `/api`, kecuali signed file access yang diterbitkan backend.
+- Frontend mengunggah, membuka preview, dan mengunduh file hanya melalui endpoint NestJS `/api`; tidak ada akses langsung ke PostgreSQL atau penyimpanan file.
 - SDK vendor hanya berada pada infrastructure adapter.
 - Domain module tidak mengimpor SDK Resend, Xendit, Gemini, atau implementasi repository file.
 - Background job wajib idempotent, memiliki batas retry, dan membawa tenant context.

@@ -24,7 +24,7 @@ Konsultan merupakan role platform internal, bukan membership organisasi.
 5. Assignment yang diterima menjadi sumber scoped access.
 6. Document version untuk Review bersifat immutable.
 7. Working copy terpisah dari Local File utama.
-8. Promotion membutuhkan persetujuan User Induk.
+8. Promotion membutuhkan persetujuan pemohon yang masih berhak mengubah Local File, atau User Induk yang mengambil alih bila hak pemohon dicabut.
 9. Harga, currency, SLA, dan revisi disimpan sebagai snapshot.
 10. Seluruh tindakan sensitif memiliki audit trail.
 11. Retry dan webhook wajib idempotent.
@@ -182,14 +182,14 @@ Authenticated session
 
 - Dapat membuat request dari seluruh document version organisasinya.
 - Dapat melihat seluruh request dan transaksi konsultasi organisasi.
-- Menjadi satu-satunya aktor pelanggan yang dapat menyetujui promotion working copy.
+- Dapat menyetujui hasil request sendiri; dapat mengambil alih keputusan request Karyawan bila hak ubah pemohon dicabut, dengan alasan dan jejak audit.
 
 ### 6.2 Karyawan
 
 - Harus memiliki membership aktif.
 - Harus memiliki `document_assignments` aktif pada Local File.
 - Hanya melihat request atau payment konsultasi yang dibuatnya, kecuali kebijakan organisasi kelak diperluas.
-- Tidak dapat menyetujui promotion.
+- Dapat menyetujui hasil request sendiri selama assignment dan hak ubah Local File masih aktif; tidak dapat menyetujui request orang lain.
 
 ### 6.3 Konsultan
 
@@ -250,6 +250,8 @@ consultation_requests 1 ── * consultation_request_payments * ── 1 paymen
 
 Hanya satu attempt current yang boleh aktif. Payment `PAID` pertama yang sah memenangkan aktivasi; webhook berikutnya harus idempotent.
 
+Junction `consultation_request_payments` menyimpan semua attempt dan `payment_id` unik, nomor attempt, penanda current, serta `activated_at` untuk attempt yang memenangkan aktivasi. `consultation_requests.payment_id` tunggal dihapus agar tidak menjadi sumber data kedua. Constraint partial unique menjamin satu attempt current dan satu pemenang aktivasi per request; transaksi webhook mengunci request dan payment sebelum mengubah status. Attempt gagal, kedaluwarsa, atau dibatalkan tetap ada untuk audit dan refund.
+
 ### 8.2 Webhook
 
 ```mermaid
@@ -296,6 +298,8 @@ Assignment menyimpan:
 - alasan decline/revoke;
 - assignment sebelumnya untuk lineage;
 - batas waktu akses.
+
+Kolom `previous_assignment_id` mereferensikan assignment lama pada request yang sama, sedangkan `revoke_reason` menyimpan alasan pencabutan. Assignment lama tidak dihapus saat reassignment; aksesnya ditutup sebelum assignment pengganti aktif.
 
 ### 9.2 Scoped Access Decision
 
@@ -354,6 +358,8 @@ Domain Review menggunakan:
 - immutable delivery revision;
 - summary per bab.
 
+`review_comment_status_history` mencatat transisi append-only. Saat publish, `review_delivery_comments` membekukan versi, isi, status, dan anchor komentar; delivery lama tidak membaca ulang body komentar yang dapat diedit. Database dan application layer menolak update/delete snapshot delivery yang sudah terbit.
+
 Detail kontrak anchor dan viewer tersedia pada [Document Review Architecture](./Document-Review-Architecture.md).
 
 ## 12. Full Preparation Workspace
@@ -365,9 +371,9 @@ flowchart LR
     Working --> ChangeSet[Append-only Change Sets]
     ChangeSet --> Preview[Draft Preview]
     Preview --> Delivery[Workspace Delivery Revision]
-    Delivery --> Feedback[User Induk Feedback]
+    Delivery --> Feedback[Pemohon Berwenang atau User Induk Pengambil Alih Memberi Feedback]
     Feedback --> Working
-    Delivery --> Approval[User Induk Approval]
+    Delivery --> Approval[Persetujuan Pemohon Berwenang atau User Induk Pengambil Alih]
     Approval --> Promote[Transactional Promotion]
     Promote --> NewVersion[New Local File Version]
 ```
@@ -375,6 +381,7 @@ flowchart LR
 ### 12.1 Isolation
 
 - Working data memiliki schema version dan optimistic version.
+- `baseline_document_version_id` menunjuk versi sumber request yang tetap; `promoted_document_version_id` kosong sampai promotion berhasil.
 - Local File sumber tidak berubah selama Konsultan bekerja.
 - Change set mencatat path, before/after hash, operation, actor, dan waktu.
 - Asset hanya berasal dari storage organisasi yang sama.
@@ -384,13 +391,17 @@ flowchart LR
 
 Delivery Penyusunan Penuh menyimpan preview, change summary, catatan, revision, checksum, dan waktu. Promotion:
 
-1. memvalidasi approval User Induk;
+Setiap penerbitan membuat `consultation_workspace_deliveries` baru dengan snapshot data, versi workspace, referensi versi dokumen sumber, serta file hasil yang immutable. Edit workspace sesudah delivery tidak mengubah snapshot lama; revisi berikutnya menambah revision baru.
+
+1. memvalidasi pemohon, penugasan dan hak ubah Local File yang masih aktif, atau pengambilalihan User Induk setelah hak pemohon dicabut; validasi dilakukan lagi saat promotion;
 2. memeriksa conflict baseline;
 3. menjalankan transaction database;
 4. membuat Local File version baru;
 5. mencatat `promotedDocumentVersionId`;
 6. menutup workspace dan scoped access;
 7. mengirim job document generation bila diminta.
+
+Persetujuan mengikat satu `consultation_workspace_deliveries` yang immutable dan mencatat `approved_by_user_id` serta `approved_at` pada workspace. Jika User Induk mengambil alih, audit menyimpan pemohon asal, alasan hak dicabut, pengambil alih, delivery, dan waktu. Backend memeriksa organisasi, Local File, baseline, status, serta versi workspace dalam transaksi. Promotion yang diulang memakai idempotency dan `promoted_document_version_id` yang sudah ada sehingga tidak membuat versi kedua.
 
 ## 13. Domain Events dan Queue
 

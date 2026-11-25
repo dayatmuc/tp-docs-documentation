@@ -93,9 +93,11 @@ flowchart TB
     EMP --> K04["UK-C04<br/>Melihat Status dan ETA"]
     EMP --> K05["UK-C05<br/>Melihat dan Membalas Komentar"]
     EMP --> K06["UK-C06<br/>Resubmit Dokumen Tugas"]
+    EMP --> K07["UK-C07<br/>Meninjau dan Menyetujui Hasil Penyusunan Penuh"]
     K02 -. "&lt;&lt;include&gt;&gt;" .-> ASSIGN["Validasi Document Assignment"]
     K03 -. "&lt;&lt;include&gt;&gt;" .-> OWN["Batasi Payment Milik Sendiri"]
     K06 -. "&lt;&lt;include&gt;&gt;" .-> QUOTA["Validasi Revision Quota"]
+    K07 -. "&lt;&lt;include&gt;&gt;" .-> EDIT["Validasi Pemohon dan Hak Ubah Local File"]
 ```
 
 | ID | Aktivitas | Batasan |
@@ -106,7 +108,8 @@ flowchart TB
 | UK-C04 | Melihat status | Hanya request yang dibuat atau dokumen yang masih ditugaskan |
 | UK-C05 | Melihat komentar | Reply dan tandai addressed; tidak menghapus komentar Konsultan |
 | UK-C06 | Resubmit | Hanya jika assignment dan revision quota masih aktif |
+| UK-C07 | Meninjau hasil Penyusunan Penuh | Hanya request yang diajukan sendiri dan Local File yang masih ditugaskan dengan hak ubah; dapat meminta revisi atau menyetujui hasil untuk diterapkan sebagai versi baru |
 
-Karyawan tidak dapat melihat seluruh billing konsultasi organisasi, mengubah katalog, menerima quotation atas nama organisasi lain, atau menyetujui promotion working copy. Approval akhir Penyusunan Penuh tetap milik User Induk.
+Karyawan tidak dapat melihat seluruh billing konsultasi organisasi, mengubah katalog, atau menerima quotation atas nama organisasi lain. Karyawan pemohon dapat menyetujui hasil Penyusunan Penuh jika masih memiliki hak ubah pada Local File tersebut. Jika aksesnya dicabut, keputusan dapat diambil alih User Induk dan dicatat dalam audit; Karyawan dan Konsultan tidak menjalankan promotion secara langsung.
 
 Karyawan dengan penugasan aktif dapat membuka History Versi pada Local File yang ditugaskan dan membandingkan dua versi hasil generate dari Local File tersebut secara baca saja. Karyawan tanpa penugasan tidak dapat melihat daftar atau hasil perbandingan versi.

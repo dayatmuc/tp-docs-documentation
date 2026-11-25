@@ -1790,7 +1790,6 @@ Table consultation_requests {
   used_revision_rounds int [not null, default: 0]
   complexity_metadata jsonb
   previous_request_id uuid [ref: > consultation_requests.id]
-  payment_id uuid [ref: > payments.id]
   created_at timestamptz [not null]
   updated_at timestamptz [not null]
   completed_at timestamptz
@@ -1798,6 +1797,20 @@ Table consultation_requests {
     (organization_id, status, created_at) [name: 'idx_consultation_request_org_status']
     (requested_by_user_id, created_at) [name: 'idx_consultation_request_requester']
     (source_document_version_id) [name: 'idx_consultation_request_version']
+  }
+}
+
+Table consultation_request_payments {
+  id uuid [pk]
+  request_id uuid [not null, ref: > consultation_requests.id]
+  payment_id uuid [not null, unique, ref: > payments.id]
+  attempt_number int [not null]
+  is_current boolean [not null, default: false]
+  activated_at timestamptz
+  created_at timestamptz [not null]
+  indexes {
+    (request_id, attempt_number) [unique, name: 'uq_consultation_payment_attempt']
+    (request_id, created_at) [name: 'idx_consultation_payment_history']
   }
 }
 
@@ -1835,6 +1848,7 @@ Table consultation_quotations {
 Table consultation_assignments {
   id uuid [pk]
   request_id uuid [not null, ref: > consultation_requests.id]
+  previous_assignment_id uuid [ref: > consultation_assignments.id]
   consultant_profile_id uuid [not null, ref: > consultant_profiles.id]
   assigned_by_admin_id uuid [not null, ref: > users.id]
   status assignment_status [not null]
@@ -1845,8 +1859,10 @@ Table consultation_assignments {
   accepted_at timestamptz
   ended_at timestamptz
   decline_reason text
+  revoke_reason text
   indexes {
     (request_id, status) [name: 'idx_assignment_request_status']
+    (previous_assignment_id) [name: 'idx_assignment_lineage']
     (consultant_profile_id, status, confirmed_due_at) [name: 'idx_assignment_consultant_workload']
   }
 }
@@ -1909,6 +1925,17 @@ Table review_comments {
   indexes { (request_id, round_id, status) [name: 'idx_review_comments_request_status'] }
 }
 
+Table review_comment_status_history {
+  id uuid [pk]
+  comment_id uuid [not null, ref: > review_comments.id]
+  from_status comment_status
+  to_status comment_status [not null]
+  changed_by_user_id uuid [not null, ref: > users.id]
+  reason text
+  created_at timestamptz [not null]
+  indexes { (comment_id, created_at) [name: 'idx_comment_status_history'] }
+}
+
 Table review_comment_anchors {
   comment_id uuid [pk, ref: > review_comments.id]
   document_version_id uuid [not null, ref: > document_versions.id]
@@ -1945,10 +1972,31 @@ Table review_deliveries {
   indexes { (round_id, revision) [unique, name: 'uq_review_delivery_revision'] }
 }
 
+Table review_delivery_comments {
+  delivery_id uuid [not null, ref: > review_deliveries.id]
+  comment_id uuid [not null, ref: > review_comments.id]
+  comment_version int [not null]
+  body_snapshot text [not null]
+  category_snapshot varchar(80) [not null]
+  severity_snapshot comment_severity [not null]
+  status_snapshot comment_status [not null]
+  anchor_snapshot jsonb
+  position int [not null]
+  indexes {
+    (delivery_id, comment_id) [pk]
+    (delivery_id, position) [unique, name: 'uq_delivery_comment_position']
+  }
+}
+
 Table consultation_workspaces {
   id uuid [pk]
   request_id uuid [not null, unique, ref: > consultation_requests.id]
   source_local_file_id uuid [not null, ref: > local_files.id]
+  baseline_document_version_id uuid [not null, ref: > document_versions.id]
+  promoted_document_version_id uuid [ref: > document_versions.id]
+  approved_delivery_id uuid [ref: > consultation_workspace_deliveries.id]
+  approved_by_user_id uuid [ref: > users.id]
+  approved_at timestamptz
   status workspace_status [not null]
   schema_version varchar(40) [not null]
   working_data jsonb [not null]
@@ -1956,6 +2004,27 @@ Table consultation_workspaces {
   created_at timestamptz [not null]
   updated_at timestamptz [not null]
   promoted_at timestamptz
+}
+
+Table consultation_workspace_deliveries {
+  id uuid [pk]
+  request_id uuid [not null, ref: > consultation_requests.id]
+  workspace_id uuid [not null, ref: > consultation_workspaces.id]
+  source_document_version_id uuid [not null, ref: > document_versions.id]
+  delivered_by_user_id uuid [not null, ref: > users.id]
+  revision int [not null]
+  workspace_version int [not null]
+  schema_version varchar(40) [not null]
+  snapshot_data jsonb [not null]
+  change_summary_json jsonb [not null]
+  consultant_note text
+  delivery_file_id uuid [ref: > files.id]
+  checksum varchar(128) [not null]
+  delivered_at timestamptz [not null]
+  indexes {
+    (workspace_id, revision) [unique, name: 'uq_workspace_delivery_revision']
+    (request_id, delivered_at) [name: 'idx_workspace_delivery_request']
+  }
 }
 
 Table consultation_change_sets {

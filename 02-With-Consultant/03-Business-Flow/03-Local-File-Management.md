@@ -381,4 +381,4 @@ Pengelolaan Local File inti telah dijelaskan lengkap pada bagian sebelumnya. Eks
 - Setiap perubahan menghasilkan change set, actor, waktu, before hash, dan after hash.
 - User Induk dapat menerima, meminta revisi, atau menolak delivery.
 - Promotion dilakukan transactionally dan menghasilkan Local File/document version baru.
-- Karyawan dapat melihat working copy apabila ditugaskan, tetapi approval akhir tetap User Induk.
+- Karyawan yang mengajukan Penyusunan Penuh dan masih ditugaskan dengan hak ubah dapat meninjau delivery serta menyetujui hasil. Jika haknya dicabut, User Induk dapat mengambil alih keputusan dengan audit; Konsultan tidak mengubah Local File utama secara langsung.

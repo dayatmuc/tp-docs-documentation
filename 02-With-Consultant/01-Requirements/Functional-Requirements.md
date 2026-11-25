@@ -17,6 +17,7 @@ Dokumen ini memuat kebutuhan fungsional terperinci untuk TP Docs versi **With Co
 | FR-09 | Sistem menyediakan history, duplikasi dokumen, pustaka pembanding, dan Settings                                                                                                                            | UI-06, UI-07, UI-09        |
 | FR-10 | Sistem mengirim notifikasi dan mencatat aktivitas penting, ekspor, serta penghapusan data                                                                                                                  | UI-01, UI-08, UI-09, UK-01 |
 | FR-11 | Sistem menyediakan portal dan dashboard operasional, maintenance mode, pengaturan dasar, billing, pengelolaan akun, pengajuan Enterprise/Custom, keamanan, integrasi, backup, dan audit bagi Administrator | UA-01 s/d UA-09            |
+| FR-12 | Admin mengelola promosi opsional; User Induk melihat harga normal atau promo, termasuk untuk jasa konsultasi. Sistem memilih satu potongan terbesar yang memenuhi syarat, membekukan harga saat transaksi, dan mempertahankan harga transaksi lama. | UI-08.1, UI-08.6, UA-05.6 |
 
 ---
 
@@ -33,19 +34,19 @@ Kebutuhan inti TP Docs telah dijelaskan pada bagian sebelumnya. Tabel berikut me
 | FR-C05 | Sistem membuat request hanya dari document version `SUCCEEDED` | UI, UK |
 | FR-C06 | Karyawan hanya dapat mengajukan dokumen yang ditugaskan dan hanya melihat payment yang dibuatnya | UK |
 | FR-C07 | Sistem menyimpan snapshot harga, currency, SLA, revisi, dan service version pada order | UI, UK |
-| FR-C08 | Sistem memproses payment konsultasi melalui provider, webhook terverifikasi, dan idempotency | UI, UK, UA |
+| FR-C08 | Sistem memproses dan menyimpan seluruh percobaan payment konsultasi melalui provider, webhook terverifikasi, dan idempotency tanpa aktivasi ganda | UI, UK, UA |
 | FR-C09 | Admin membuat quotation Penyusunan Penuh dan pengguna menerima atau menolaknya | UI, UK, UA |
 | FR-C10 | Admin melakukan assignment/reassignment manual setelah payment berhasil | UA, UCN-02–UCN-04 |
 | FR-C11 | Konsultan hanya melihat request paid yang ditugaskan | UCN-02 |
 | FR-C12 | Sistem menghitung ETA, mendukung konfirmasi, pause, dan perubahan terotorisasi | UA, UCN-04 |
 | FR-C13 | Viewer menampilkan preview semantik dan mendukung text highlight | UCN-05–UCN-06 |
-| FR-C14 | Sistem menyimpan anchor, comment thread, replies, category, severity, dan status | UCN-06–UCN-07 |
+| FR-C14 | Sistem menyimpan anchor, comment thread, replies, category, severity, status beserta riwayat transisinya, dan snapshot komentar pada delivery | UCN-06–UCN-08 |
 | FR-C15 | Sistem membentuk summary komentar per bab secara deterministik | UCN-08 |
 | FR-C16 | Pengguna memperbaiki Local File, generate versi baru, dan resubmit | UI, UK, UCN-09 |
 | FR-C17 | Sistem membatasi review ulang berdasarkan snapshot revisi order | UI, UK, UCN-09 |
 | FR-C18 | Review tambahan membuat order dan payment baru | UI, UK |
-| FR-C19 | Penyusunan Penuh menggunakan working copy terpisah dan change set | UCN-10–UCN-11 |
-| FR-C20 | Promotion working copy memerlukan approval User Induk dan menghasilkan versi baru | UI, UCN-11 |
+| FR-C19 | Penyusunan Penuh menggunakan working copy terpisah, baseline version, change set, dan delivery revision immutable | UCN-10–UCN-11 |
+| FR-C20 | Promotion working copy memerlukan approval pemohon yang masih berhak mengubah Local File; bila hak pemohon dicabut, User Induk dapat mengambil alih dengan audit. Sistem menghasilkan satu versi baru yang dapat ditelusuri ke workspace, delivery, dan pemberi persetujuan | UI, UK, UCN-11 |
 | FR-C21 | Sistem mengirim notifikasi status, assignment, ETA, delivery, dan resubmission | Semua aktor |
 | FR-C22 | Sistem mengaudit katalog, quotation, payment, assignment, akses viewer, komentar, delivery, dan promotion | Semua aktor |
 
@@ -59,4 +60,3 @@ Kebutuhan inti TP Docs telah dijelaskan pada bagian sebelumnya. Tabel berikut me
 - Delivery gagal jika belum ada comment/draft yang dipublikasikan.
 - Resubmission gagal jika revisi order habis.
 - Akses Konsultan berakhir setelah completion, revoke, atau reassignment.
-| FR-12 | Admin mengelola promosi opsional; User Induk melihat harga normal atau promo, termasuk untuk jasa konsultasi. Sistem memilih satu potongan terbesar yang memenuhi syarat, membekukan harga saat transaksi, dan mempertahankan harga transaksi lama. | UI-08.1, UI-08.6, UA-05.6 |
