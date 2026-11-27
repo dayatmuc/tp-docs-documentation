@@ -148,7 +148,7 @@ Penugasan merupakan aktivitas User Induk pada `UI-08.5`. Flow ini tidak menambah
 
 ```mermaid
 flowchart TD
-    ASSIGN_START([User Induk memilih dokumen perusahaan]) --> ASSIGN_MEMBER[Pilih Karyawan aktif]
+    ASSIGN_START([User Induk memilih Local File buatannya]) --> ASSIGN_MEMBER[Pilih Karyawan aktif]
     ASSIGN_MEMBER --> ASSIGN_VALIDATE{"Membership aktif dan paket masih berlaku?"}
     ASSIGN_VALIDATE -- "Tidak" --> ASSIGN_DENY[Penugasan ditolak]
     ASSIGN_VALIDATE -- "Ya" --> ASSIGN_SAVE[Simpan Document Assignment]
@@ -198,7 +198,8 @@ flowchart TD
     REMOVE_OK -- "Ya" --> REMOVE_MEMBER[Ubah Membership menjadi Revoked]
     REMOVE_MEMBER --> REMOVE_SESSION[Cabut akses organisasi dan sesi terkait]
     REMOVE_SESSION --> REMOVE_ASSIGN[Nonaktifkan seluruh Document Assignment anggota]
-    REMOVE_ASSIGN --> REMOVE_SEAT[Bebaskan satu kursi organisasi]
+    REMOVE_ASSIGN --> REMOVE_TAKEOVER[Alihkan akses Local File privat buatan Karyawan kepada User Induk; catat audit]
+    REMOVE_TAKEOVER --> REMOVE_SEAT[Bebaskan satu kursi organisasi]
     REMOVE_SEAT --> REMOVE_KEEP[Pertahankan dokumen dan histori perubahan sebagai milik perusahaan]
     REMOVE_KEEP --> REMOVE_ACCOUNT[Pertahankan akun pribadi Karyawan]
     REMOVE_ACCOUNT --> REMOVE_NOTIFY[Kirim pemberitahuan pencabutan akses]
@@ -208,7 +209,7 @@ flowchart TD
     classDef process fill:#eff6ff,stroke:#3b82f6,color:#0f172a;
     classDef decision fill:#fef3c7,stroke:#d97706,color:#0f172a;
     class REMOVE_START,REMOVE_END,REMOVE_DONE startend;
-    class REMOVE_CONFIRM,REMOVE_MEMBER,REMOVE_SESSION,REMOVE_ASSIGN,REMOVE_SEAT,REMOVE_KEEP,REMOVE_ACCOUNT,REMOVE_NOTIFY process;
+    class REMOVE_CONFIRM,REMOVE_MEMBER,REMOVE_SESSION,REMOVE_ASSIGN,REMOVE_TAKEOVER,REMOVE_SEAT,REMOVE_KEEP,REMOVE_ACCOUNT,REMOVE_NOTIFY process;
     class REMOVE_OK decision;
 ```
 
@@ -248,6 +249,8 @@ flowchart TD
 - Karyawan tidak memiliki masa Professional tersendiri.
 - Berakhirnya paket perusahaan mencabut fitur berbayar Karyawan tanpa menghapus akun pribadi.
 - Penghapusan Karyawan membebaskan kursi, tetapi tidak menghapus dokumen atau histori perusahaan.
+- Pencabutan membership pembuat menyerahkan akses Local File privatnya kepada User Induk dengan jejak audit; metadata dan isi dokumen tidak terbuka kepada User Induk sebelum pengambilalihan.
+- Penugasan oleh User Induk hanya berlaku pada dokumen buatannya. Berbagi dokumen buatan Karyawan kepada User Induk hanya dapat diubah oleh Karyawan pembuat selama membership aktif dan tidak dapat diteruskan kepada Karyawan lain.
 - Seluruh undangan, penerimaan, pembatalan, penugasan, dan pencabutan akses dicatat pada audit log.
 
 ## 11. Hubungan Organisasi TP Docs dengan Xendit

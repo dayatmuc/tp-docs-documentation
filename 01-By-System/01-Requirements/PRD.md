@@ -100,15 +100,15 @@ Manfaat yang diharapkan adalah proses penyusunan yang lebih cepat, konsisten, da
 - Sistem tidak bertindak sebagai konsultan atau wakil pajak.
 - Kualitas keluaran bergantung pada kelengkapan dan kebenaran data masukan.
 - Administrator tidak otomatis dapat membaca isi dokumen pelanggan.
-- Karyawan hanya dapat mengakses organisasi dan dokumen sesuai keanggotaan serta penugasan.
+- Karyawan hanya dapat mengakses organisasi sesuai membership dan dokumen buatannya atau yang penugasannya aktif.
 - Paket Enterprise/Custom dapat bergantung pada kontrak dan kemampuan infrastruktur yang tersedia.
 
 ## 5. User Roles & Responsibilities
 
 | Aktor             | Tanggung jawab utama                                                                                                                                                       |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **User Induk**    | Mendaftarkan perusahaan, mengelola profil perusahaan, langganan, pembayaran, kuota, anggota, penugasan, seluruh dokumen perusahaan, serta permintaan penghapusan data.     |
-| **Karyawan**      | Menggunakan akun pribadi, menerima undangan perusahaan, melihat status akses langganan, dan mengerjakan dokumen yang ditugaskan tanpa mengelola anggota maupun pembayaran. |
+| **User Induk**    | Mendaftarkan perusahaan, mengelola profil, langganan, pembayaran, kuota, anggota, dokumen buatannya dan penugasan; melihat dokumen buatan Karyawan hanya jika dibagikan atau diambil alih setelah membership pembuat dicabut. |
+| **Karyawan**      | Menerima undangan, melihat kuota organisasi, membuat dan men-generate Local File sendiri, memilih berbagi dengan User Induk, serta mengerjakan dokumen yang ditugaskan tanpa mengelola anggota maupun pembayaran. |
 | **Administrator** | Memelihara platform, konfigurasi, paket, billing, akun, keamanan, integrasi, backup, retensi, insiden, dan laporan operasional tanpa mengambil alih pekerjaan perusahaan.  |
 
 Detail aktivitas aktor tersedia pada:
@@ -179,8 +179,8 @@ Diskon event bersifat opsional. Administrator dapat mengaktifkan promosi untuk p
 Diskon event bersifat opsional. Tanpa event aktif yang sesuai, harga katalog atau quotation normal berlaku. Administrator menentukan sasaran, nilai, periode, dan batas penggunaan; satu transaksi hanya menerima potongan terbesar yang memenuhi syarat. Harga akhir dibekukan saat checkout atau quotation diterbitkan dan refund mengacu pada nilai yang dibayar.
 
 1. Setiap dokumen, data, histori perubahan, dan hasil generate dimiliki oleh organisasi yang membuatnya.
-2. User Induk dapat mengelola seluruh dokumen, anggota, langganan, dan data perusahaan dalam organisasinya.
-3. Karyawan hanya dapat mengakses dokumen yang ditugaskan dan tidak dapat mengelola paket, pembayaran, atau anggota.
+2. User Induk mengelola anggota, langganan, kuota, dan dokumen buatannya; dokumen privat buatan Karyawan hanya menambah angka pemakaian kuota agregat tanpa menampilkan metadata atau isi kepada User Induk.
+3. Karyawan aktif dapat membuat Local File privat dengan kuota organisasi, mengakses dokumen buatannya atau yang ditugaskan, dan men-generate setelah validasi; ia tidak dapat mengelola paket, pembayaran, atau anggota. Pembuat dapat memberi atau mencabut akses lihat/ubah User Induk. Jika membership pembuat dicabut, User Induk mengambil alih dokumen dengan jejak audit.
 4. Administrator tidak boleh mengubah isi Local File, memilih metode TP, menugaskan dokumen, atau menyamar sebagai pengguna.
 5. Administrator tidak dapat membaca atau mengubah isi Local File dan tidak memiliki akses dukungan langsung ke data dokumen pelanggan.
 6. Free/Trial menyediakan satu dokumen selama masa akun dan satu pengguna.
@@ -216,7 +216,7 @@ Sistem dapat diterima apabila:
 - Seluruh kebutuhan fungsional prioritas telah lulus pengujian.
 - Seluruh use case User Induk, Karyawan, dan Administrator memiliki hasil yang sesuai hak aksesnya.
 - Pengguna tidak dapat mengakses data organisasi lain melalui UI, API, URL file, cache, atau background job.
-- Karyawan tidak dapat membuka dokumen yang tidak ditugaskan.
+- Karyawan hanya dapat membuka dokumen buatannya atau yang penugasannya aktif. User Induk tidak dapat membuka dokumen privat buatan Karyawan selama membership pembuat aktif.
 - Administrator tidak dapat membaca atau mengubah isi dokumen pelanggan.
 - MFA wajib diterapkan kepada User Induk dan Administrator.
 - Perhitungan kuota, kursi, add-on, dan masa aktif menghasilkan nilai yang benar.

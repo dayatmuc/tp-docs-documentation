@@ -461,7 +461,7 @@ flowchart TB
 - Mengetahui URL `/admin` tidak memberikan hak akses.
 - User Induk dan Karyawan yang mencoba mengakses resource Administrator menerima `403 Forbidden`.
 - User Induk hanya dapat mengakses organisasinya.
-- Karyawan hanya dapat mengakses dokumen yang ditugaskan.
+- Karyawan aktif dapat membuat dan mengakses dokumen buatannya atau dokumen dengan penugasan aktif. User Induk tidak mendapat akses isi atau metadata dokumen privat buatan Karyawan selama membership pembuat aktif, kecuali pembuat membagikannya; pengambilalihan setelah pencabutan membership diaudit.
 - Administrator tidak otomatis dapat membaca isi dokumen pelanggan.
 - Tenant context diterapkan pada query metadata file, pembacaan chunk, cache key, queue job, search, dan background process.
 - Akses file menggunakan streaming NestJS dengan otorisasi resource dan HTTP Range bila diperlukan.

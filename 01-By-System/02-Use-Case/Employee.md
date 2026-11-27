@@ -6,7 +6,7 @@
 
 ## 2. Daftar Use Case — Karyawan
 
-Selain menerima undangan dan memantau akses langganan, Karyawan dapat mengisi Local File organisasi yang ditugaskan oleh User Induk. Karyawan tidak dapat membuat Local File baru, membeli paket atau add-on, mengelola pembayaran, mengundang anggota lain, atau mengubah penugasan.
+Selain menerima undangan dan memantau akses langganan serta kuota organisasi, Karyawan aktif dapat membuat Local File privat dengan kuota bersama, mengisi dan men-generate dokumen buatannya, serta mengerjakan dokumen buatan User Induk yang ditugaskan kepadanya. Karyawan tidak dapat membeli paket atau add-on, mengelola pembayaran, mengundang anggota lain, atau mengubah penugasan.
 
 ### 2.1 Visual Aktivitas Karyawan
 
@@ -21,6 +21,8 @@ flowchart TB
     A --> UIK01
     A --> UIK02
     A --> UIK03
+    A --> UIK04(["UK-04<br/>Membuat dan Generate Local File Sendiri"])
+    A --> UIK05(["UK-05<br/>Melihat Dokumen dan History Versi yang Dapat Diakses"])
 
     OPEN["UK-01.1<br/>Membuka Link Undangan"]
     CHECK["UK-01.2<br/>Memeriksa Kepemilikan Akun"]
@@ -48,12 +50,14 @@ flowchart TB
     PACKAGE["UK-02.2<br/>Melihat Paket yang Diwarisi"]
     STATUS["UK-02.3<br/>Melihat Status Membership"]
     PERIOD["UK-02.4<br/>Melihat Masa Berlaku Akses"]
+    QUOTA["UK-02.5<br/>Melihat Kuota Dokumen Organisasi"]
     EXPIRED["UK-02.E1<br/>Akses Langganan Berakhir"]
 
     UIK02 -. "&lt;&lt;include&gt;&gt;" .-> COMPANY
     UIK02 -. "&lt;&lt;include&gt;&gt;" .-> PACKAGE
     UIK02 -. "&lt;&lt;include&gt;&gt;" .-> STATUS
     UIK02 -. "&lt;&lt;include&gt;&gt;" .-> PERIOD
+    UIK02 -. "&lt;&lt;include&gt;&gt;" .-> QUOTA
     UIK02 -. "&lt;&lt;extend&gt;&gt;" .-> EXPIRED
     PERIOD ~~~ EXPIRED
 
@@ -84,11 +88,12 @@ flowchart TB
 | UK-01.6    | └── _sub dari UK-01_      | Mengaktifkan Akses Langganan               | [Aktivitas memperoleh fitur sesuai paket dan sisa masa aktif perusahaan]                               | [-]                     | [-]                   |
 | UK-01.E1   | └── _extend dari UK-01_   | Menolak Undangan                           | [Aktivitas menolak bergabung ke perusahaan]                                                            | [-]                     | [-]                   |
 | UK-01.E2   | └── _extend dari UK-01_   | Undangan Tidak Valid atau Kedaluwarsa      | [Aktivitas menolak token salah, digunakan, dibatalkan, atau kedaluwarsa]                               | [-]                     | [-]                   |
-| **UK-02**  | **`[AKTOR DIRECT]`**      | **Melihat Status Akses Langganan**         | [Aktivitas melihat sumber dan masa berlaku akses berbayar]                                             | UK-02.1 s/d UK-02.4     | UK-02.E1              |
+| **UK-02**  | **`[AKTOR DIRECT]`**      | **Melihat Status Akses Langganan**         | [Aktivitas melihat sumber, masa berlaku akses, dan kuota dokumen agregat]                                | UK-02.1 s/d UK-02.5     | UK-02.E1              |
 | UK-02.1    | └── _sub dari UK-02_      | Melihat Perusahaan Induk                   | [Aktivitas menampilkan perusahaan tempat Karyawan menjadi anggota]                                     | [-]                     | [-]                   |
 | UK-02.2    | └── _sub dari UK-02_      | Melihat Paket yang Diwarisi                | [Aktivitas menampilkan paket perusahaan yang berlaku bagi Karyawan]                                    | [-]                     | [-]                   |
 | UK-02.3    | └── _sub dari UK-02_      | Melihat Status Membership                  | [Aktivitas menampilkan status aktif, tertunda, atau dicabut]                                           | [-]                     | [-]                   |
 | UK-02.4    | └── _sub dari UK-02_      | Melihat Masa Berlaku Akses                 | [Aktivitas menampilkan tanggal berakhir berdasarkan langganan perusahaan]                              | [-]                     | [-]                   |
+| UK-02.5    | └── _sub dari UK-02_      | Melihat Kuota Dokumen Organisasi           | [Aktivitas melihat total, terpakai, dan sisa kuota bersama tanpa rincian pembayaran]                    | [-]                     | [-]                   |
 | UK-02.E1   | └── _extend dari UK-02_   | Akses Langganan Berakhir                   | [Aktivitas mencabut fitur berbayar saat paket perusahaan berakhir]                                     | [-]                     | [-]                   |
 
 | **UK-03** | **`[AKTOR DIRECT — KARYAWAN DITUGASKAN]`** | **Mengisi Local File yang Ditugaskan** | [Aktivitas Karyawan berkontribusi pada draft organisasi yang sama dengan User Induk] | UK-03.1 s/d UK-03.4 | UK-03.E1 |
@@ -98,6 +103,21 @@ flowchart TB
 | UK-03.4 | └── _sub dari UK-03_ | Melihat Perubahan Bersama | [Data dan status bagian yang telah disimpan User Induk atau Karyawan lain terlihat setelah dimuat ulang] | [-] | [-] |
 | UK-03.E1 | └── _extend dari UK-03.3_ | Konflik Versi Saat Menyimpan | [Perubahan berbasis versi lama ditolak; Karyawan memuat data terbaru sebelum menyimpan kembali] | [-] | [-] |
 
-Bagian 11, Review & Generate, dapat dibuka untuk melihat kelengkapan. Pembuatan file akhir dilakukan oleh User Induk setelah seluruh syarat valid. Pencabutan penugasan langsung mengakhiri akses Karyawan ke dokumen tersebut.
+Bagian 11, Review & Generate, dapat dibuka untuk melihat kelengkapan. Karyawan dengan penugasan aktif dapat melakukan generate setelah seluruh syarat valid. Pencabutan penugasan langsung mengakhiri akses Karyawan ke dokumen tersebut.
 
-Karyawan dengan penugasan aktif dapat membuka History Versi pada Local File yang ditugaskan dan membandingkan dua versi hasil generate dari Local File tersebut secara baca saja. Karyawan tanpa penugasan tidak dapat melihat daftar atau hasil perbandingan versi.
+Karyawan dapat membuka History Versi pada Local File buatannya atau yang ditugaskan dan membandingkan dua versi hasil generate dari dokumen tersebut secara baca saja. Karyawan tanpa penugasan tidak dapat melihat dokumen buatan User Induk.
+
+## 3. Pembuatan dan Akses Dokumen Karyawan
+
+Ketentuan UK-03 tentang dokumen **yang ditugaskan** tetap berlaku. Selain itu, Karyawan aktif dapat membuat dan mengelola Local File **buatannya sendiri**. Daftar “Dibuat oleh saya” memuat dokumen tersebut; daftar “Ditugaskan kepada saya” hanya memuat dokumen buatan User Induk dengan penugasan aktif. Karyawan juga melihat total, terpakai, dan sisa kuota organisasi tanpa rincian pembayaran. Jika kuota habis, ia meminta User Induk mengelola kapasitas paket.
+
+| ID | Use Case | Aktivitas / hasil |
+| --- | --- | --- |
+| **UK-04** | Membuat Local File sendiri | Validasi membership, paket, kuota organisasi, entitas, tahun pajak, jenis, dan nama dokumen; satu kuota dipakai hanya setelah draft berhasil dibuat. |
+| UK-04.1 | Memulai draft privat | Dokumen baru buatan Karyawan hanya dapat diakses pembuat; User Induk hanya melihat pemakaian kuota agregat tanpa metadata atau isi dokumen. |
+| UK-04.2 | Berbagi dengan User Induk | Pembuat aktif dapat memberi atau mencabut akses lihat/ubah User Induk. Perubahan berlaku segera pada draft, versi, preview, serta unduhan dan dicatat dalam audit. |
+| UK-04.3 | Mengisi dan generate | Pembuat membuka bagian 01–10 bebas urutan, memeriksa bagian 11, lalu melakukan generate setelah seluruh validasi berhasil. Generate ulang tidak memakai kuota pembuatan baru. |
+| UK-04.E1 | Kuota tidak tersedia | Pembuatan ditolak tanpa mengurangi kuota; Karyawan tidak dapat membuka checkout. |
+| **UK-05** | Melihat dokumen dan History Versi yang dapat diakses | Karyawan membuka riwayat dokumen buatannya atau yang ditugaskan, serta membandingkan dua versi dari dokumen yang sama secara baca saja. |
+
+User Induk tidak dapat menugaskan dokumen buatan Karyawan kepada Karyawan lain. Hanya pembuat yang mengubah pilihan berbagi selama membership aktif. Jika membership pembuat dicabut, sistem menyerahkan akses dokumen kepada User Induk dan mencatat waktu, aktor, dan alasan pada audit; akun pribadi pembuat tetap ada. Administrator platform tidak memperoleh akses isi dokumen.

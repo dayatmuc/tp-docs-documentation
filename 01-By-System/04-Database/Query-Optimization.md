@@ -113,8 +113,9 @@ Daftar versi satu Local File memakai `(local_file_id, version_number DESC, id)` 
 
 | Kebutuhan | Pola query | Target jumlah query |
 | --- | --- | --- |
-| Daftar Local File User Induk | Filter tenant, cursor pagination, assignment count terpilih | 1–2 |
-| Daftar tugas Karyawan | Mulai dari `document_assignments`, join Local File dan membership aktif | 1 |
+| Daftar Local File User Induk | Filter tenant serta dokumen yang dibuat sendiri, dibagikan, atau diambil alih; jangan ambil metadata dokumen privat | 1–2 |
+| Daftar “Dibuat oleh saya” Karyawan | Filter `created_by_user_id`, tenant, membership aktif, dan cursor | 1 |
+| Daftar “Ditugaskan kepada saya” Karyawan | Mulai dari `document_assignments`, join Local File buatan User Induk dan membership aktif | 1 |
 | Detail anggota organisasi | Membership + user field minimum + assignment count batch | 1–2 |
 | Dashboard Administrator | Query agregat per domain atau read model terjadwal | Jumlah tetap, tidak berdasarkan jumlah organisasi |
 | Detail Local File editor | Query per bounded aggregate/section, bukan seluruh dokumen sekaligus | Jumlah tetap per section |
@@ -212,7 +213,7 @@ Jangan menambahkan full-text index sebelum kebutuhan pencarian bebas ditetapkan.
 - Untuk detail Local File, ambil section yang sedang dibuka atau gunakan beberapa batch query dengan jumlah tetap.
 - Gunakan CTE untuk membuat query agregasi kompleks lebih mudah dibaca; jangan menganggap CTE otomatis lebih cepat tanpa `EXPLAIN`.
 
-Contoh daftar tugas Karyawan:
+Contoh daftar tugas Karyawan untuk dokumen buatan User Induk:
 
 ```sql
 SELECT
@@ -228,6 +229,10 @@ JOIN memberships m
 JOIN local_files lf
   ON lf.id = da.local_file_id
  AND lf.organization_id = da.organization_id
+JOIN memberships creator_membership
+  ON creator_membership.organization_id = lf.organization_id
+ AND creator_membership.user_id = lf.created_by_user_id
+ AND creator_membership.role = 'OWNER'
 WHERE da.membership_id = $1
   AND da.organization_id = $2
   AND da.revoked_at IS NULL
@@ -304,6 +309,8 @@ Agregasi transaksi, kuota, dashboard, dan laporan harus menggunakan SQL set-base
 
 Query kritis wajib diuji menggunakan dataset representatif.
 
+Contoh `EXPLAIN` berikut adalah daftar User Induk yang sudah difilter berdasarkan hak akses. Pengguna yang tidak berhak tidak boleh menerima metadata dokumen privat, bahkan melalui hitungan hasil, pencarian, atau pagination.
+
 ```sql
 EXPLAIN (ANALYZE, BUFFERS, VERBOSE)
 SELECT
@@ -314,6 +321,7 @@ SELECT
   updated_at
 FROM local_files
 WHERE organization_id = $1
+  AND (created_by_user_id = $2 OR owner_shared = true OR taken_over_by_user_id = $2)
   AND archived_at IS NULL
 ORDER BY updated_at DESC, id DESC
 LIMIT 25;

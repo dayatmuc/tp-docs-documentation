@@ -120,8 +120,8 @@ Error tidak mengungkap secret, stack trace, query, provider response mentah, ata
 | Profil pribadi | Akun sendiri | Akun sendiri | Akun Administrator sendiri |
 | Profil organisasi | Kelola | Baca sesuai kebutuhan dokumen | Metadata operasional; tidak mengubah kepemilikan |
 | Anggota organisasi | Kelola | Tidak | Tidak mengundang, menghapus, atau menugaskan anggota |
-| Local File | Seluruh dokumen organisasi | Hanya dokumen yang ditugaskan | Tidak otomatis dapat membaca isi dokumen |
-| Langganan dan kuota | Kelola | Tidak | Kelola katalog dan koreksi terotorisasi |
+| Local File | Buatan sendiri, dibagikan Karyawan, atau diambil alih | Buatan sendiri atau ditugaskan aktif; dapat membuat dan generate | Tidak otomatis dapat membaca isi dokumen |
+| Langganan dan kuota | Kelola paket dan lihat kuota agregat | Lihat kuota dokumen agregat; tidak mengelola paket | Kelola katalog dan koreksi terotorisasi |
 | Pembayaran dan refund | Kelola dan ajukan | Tidak | Proses operasional dengan audit dan approval |
 | Enterprise/Custom | Mengajukan dan memutuskan quotation | Tidak | Meninjau, membuat quotation, dan mengaktifkan setelah pembayaran |
 | Pengaturan platform | Tidak | Tidak | Sesuai kewenangan Administrator |
@@ -208,7 +208,7 @@ type LoginResponse =
 | POST | `/api/organizations/{organizationId}/document-assignments` | Owner | Tugaskan dokumen |
 | DELETE | `/api/organizations/{organizationId}/document-assignments/{assignmentId}` | Owner | Cabut penugasan |
 
-Penugasan berlaku pada satu Local File organisasi. User Induk tetap memiliki akses ke seluruh dokumen organisasi; hanya Karyawan dengan penugasan aktif yang dapat membaca dan mengubah draft yang sama. Daftar anggota yang terlihat pada workspace dokumen berasal dari penugasan aktif, bukan seluruh membership organisasi.
+Penugasan oleh User Induk berlaku pada Local File buatannya. Karyawan dengan penugasan aktif dapat membaca, mengubah, dan men-generate dokumen tersebut. Dokumen buatan Karyawan dimulai privat; hanya pembuat dapat memberi atau mencabut akses lihat/ubah User Induk selama membership aktif. User Induk tidak dapat menugaskan dokumen buatan Karyawan kepada anggota lain. Ketika membership pembuat dicabut, sistem mengalihkan akses kepada User Induk dengan audit. Pemeriksaan akses ini berlaku untuk metadata, isi, versi, preview, unduhan, dan daftar; kuota organisasi hanya menampilkan agregat tanpa metadata dokumen privat.
 
 ## 11. Plans, Subscription, Quota, dan Billing
 
@@ -236,8 +236,8 @@ Checkout dan quotation memakai endpoint yang ada. Backend mengembalikan original
 | POST | `/api/organizations/{organizationId}/subscription/checkout` | Owner | Checkout paket |
 | POST | `/api/organizations/{organizationId}/subscription/upgrade` | Owner | Upgrade paket |
 | POST | `/api/organizations/{organizationId}/subscription/cancel` | Owner | Batalkan renewal sesuai kebijakan |
-| GET | `/api/organizations/{organizationId}/quotas` | Owner | Kuota dokumen/kursi |
-| GET | `/api/organizations/{organizationId}/quota-ledger` | Owner | Histori perubahan kuota |
+| GET | `/api/organizations/{organizationId}/quotas` | Owner/Member aktif | Kuota dokumen agregat untuk keduanya; rincian kursi dan billing hanya Owner |
+| GET | `/api/organizations/{organizationId}/quota-ledger` | Owner | Histori perubahan kuota; entri dokumen privat hanya menampilkan pemakaian agregat tanpa ID atau metadata dokumen |
 | POST | `/api/organizations/{organizationId}/addons/documents/checkout` | Owner | Beli dokumen tambahan |
 | POST | `/api/organizations/{organizationId}/addons/seats/checkout` | Owner | Beli kursi tambahan |
 | GET | `/api/organizations/{organizationId}/addons` | Owner | Daftar add-on |
@@ -300,19 +300,21 @@ Upload memakai field file serta metadata `purpose`, organization context, dan ta
 | Method | Endpoint | Auth | Fungsi |
 | --- | --- | --- | --- |
 | GET | `/api/organizations/{organizationId}/local-files` | Member | Daftar sesuai permission |
-| POST | `/api/organizations/{organizationId}/local-files` | Owner | Buat Local File dan memakai kuota setelah transaksi database berhasil |
-| GET | `/api/local-files/{localFileId}` | Assigned | Detail dan progress |
-| PATCH | `/api/local-files/{localFileId}` | Assigned | Update metadata |
-| DELETE | `/api/local-files/{localFileId}` | Owner | Hapus sesuai retensi |
-| POST | `/api/local-files/{localFileId}/duplicate` | Owner | Duplikasi sebagai Local File baru |
+| POST | `/api/organizations/{organizationId}/local-files` | Owner/Member aktif | Buat Local File dan pakai kuota organisasi setelah transaksi berhasil; buatan Karyawan dimulai privat |
+| GET | `/api/local-files/{localFileId}` | Resource access | Detail dan progress sesuai pembuat, penugasan, berbagi, atau pengambilalihan |
+| PATCH | `/api/local-files/{localFileId}` | Resource write | Update metadata |
+| DELETE | `/api/local-files/{localFileId}` | Resource owner | Hapus sesuai retensi |
+| POST | `/api/local-files/{localFileId}/duplicate` | Resource owner | Duplikasi sebagai Local File baru dengan kuota dan akses awal sesuai pembuat baru |
+| GET | `/api/local-files/{localFileId}/owner-sharing` | Creator/Shared owner | Status berbagi dengan User Induk |
+| PUT | `/api/local-files/{localFileId}/owner-sharing` | Employee creator aktif | Beri atau cabut akses lihat/ubah User Induk; perubahan diaudit dan langsung berlaku |
 | GET | `/api/local-files/{localFileId}/sections` | Assigned | Progress section |
-| GET | `/api/local-files/{localFileId}/collaborators` | Assigned | User Induk dan Karyawan dengan penugasan aktif pada dokumen |
+| GET | `/api/local-files/{localFileId}/collaborators` | Resource access | Pembuat, penerima berbagi, dan Karyawan dengan penugasan aktif pada dokumen |
 | PATCH | `/api/local-files/{localFileId}/sections/{sectionCode}` | Assigned | Update status section |
 | POST | `/api/local-files/{localFileId}/validate` | Assigned | Validasi kelengkapan |
 | GET | `/api/local-files/{localFileId}/history` | Assigned | Histori perubahan |
-| GET | `/api/local-files/{localFileId}/audit-events` | Owner | Audit dokumen |
+| GET | `/api/local-files/{localFileId}/audit-events` | Resource owner | Audit dokumen sesuai akses pembuat atau pengambilalihan |
 
-Respons detail dan daftar bagian memuat status tiap bagian, `updatedBy`, `updatedAt`, dan versi/ETag bagian. Bagian 01–10 dapat dibaca dan disimpan dalam urutan bebas. Setiap mutation data bagian oleh User Induk atau Karyawan yang ditugaskan mengirim `If-Match` dari versi bagian terakhir yang dibaca. Jika versi tersebut sudah berubah, server mengembalikan `409` dengan versi terbaru sehingga klien dapat menampilkan konflik tanpa menimpa perubahan pengguna lain. Update pada bagian berbeda tidak saling mengunci. Bagian 11 dapat dibaca kapan saja untuk daftar kekurangan; validasi kelengkapan hanya mengunci tindakan generate.
+Respons detail dan daftar bagian memuat status tiap bagian, `updatedBy`, `updatedAt`, dan versi/ETag bagian. Bagian 01–10 dapat dibaca dan disimpan dalam urutan bebas oleh pembuat, penerima berbagi, atau Karyawan dengan penugasan aktif. Setiap mutation mengirim `If-Match` dari versi bagian terakhir; versi lama menghasilkan `409` tanpa menimpa perubahan baru. Bagian 11 dapat dibaca kapan saja; validasi kelengkapan hanya mengunci tindakan generate.
 
 Endpoint data bagian pada seksi berikutnya mengembalikan ETag bagian yang sama pada respons baca dan respons simpan. Dengan demikian, formulir yang dibuka oleh dua pengguna dapat membandingkan versi saat menyimpan tanpa bergantung pada versi seluruh Local File.
 
@@ -463,15 +465,17 @@ Response `202 Accepted` mengembalikan `generationId`, `status: QUEUED`, dan poll
 | GET | `/api/local-files/{id}/review-summary` | Assigned | Preview ringkasan |
 | GET | `/api/local-files/{id}/warnings` | Assigned | Warning rentang/data |
 | POST | `/api/local-files/{id}/warnings/recalculate` | Assigned | Hitung ulang |
-| POST | `/api/local-files/{id}/generations` | Owner | Buat job DOCX/PDF setelah validasi final |
-| GET | `/api/document-generations/{generationId}` | Tenant owner | Status generation |
-| GET | `/api/local-files/{id}/document-versions` | Assigned | Histori version |
-| GET | `/api/local-files/{id}/document-versions/compare?fromVersionId={a}&toVersionId={b}` | Owner/Assigned | Diff baca saja dari dua snapshot hasil generate milik Local File yang sama; ringkasan bagian berubah dan nilai sebelum/sesudah |
+| POST | `/api/local-files/{id}/generations` | Resource write | Buat job DOCX/PDF setelah validasi final; Karyawan pembuat/ditugaskan dapat menjalankan |
+| GET | `/api/document-generations/{generationId}` | Resource access | Status generation |
+| GET | `/api/local-files/{id}/document-versions` | Resource access | Histori version |
+| GET | `/api/local-files/{id}/document-versions/compare?fromVersionId={a}&toVersionId={b}` | Resource access | Diff baca saja dari dua snapshot hasil generate milik Local File yang sama; ringkasan bagian berubah dan nilai sebelum/sesudah |
 | GET | `/api/document-versions/{versionId}` | Resource permission | Metadata version |
 | GET | `/api/document-versions/{versionId}/download?format=docx\|pdf` | Resource permission | Stream DOCX/PDF setelah validasi paket dan akses |
-| POST | `/api/document-versions/{versionId}/clone` | Owner/Assigned | Clone sebagai dokumen baru |
+| POST | `/api/document-versions/{versionId}/clone` | Resource access + kuota | Clone sebagai dokumen baru dengan privasi awal sesuai pembuat baru |
 
 Respons perbandingan memuat `fromVersionId`, `toVersionId`, `changedSections`, serta daftar perubahan per bagian (`path`, `before`, `after`, `changeType`). Nilai sensitif hanya dikirim kepada pengguna yang berhak membaca kedua versi. `400` untuk dua ID sama atau versi dari Local File berbeda; `404` untuk versi yang tidak ada atau tidak boleh diakses; `422` bila snapshot/schema tidak dapat dibandingkan. Hasil perbandingan tidak disimpan sebagai versi baru dan tidak memodifikasi dokumen. Pagination pada daftar History Versi menggunakan urutan `version_number DESC` dan cursor stabil.
+
+`Resource access` berarti pembuat dengan membership aktif, Karyawan dengan penugasan aktif pada dokumen buatan User Induk, User Induk pada dokumen buatannya atau yang dibagikan Karyawan, serta User Induk penerima pengambilalihan. `Resource write` memiliki cakupan yang sama untuk pengisian dan generate; `Resource owner` berarti pembuat aktif atau User Induk setelah pengambilalihan. Hak berbagi User Induk tidak mencakup tindakan meneruskan penugasan dokumen buatan Karyawan. Backend memeriksa hak ini pada setiap request, termasuk resource file dan versi.
 
 ## 20. Administrator — Dashboard dan Operasional
 
@@ -697,14 +701,16 @@ Audit tidak menyimpan password, token, isi lengkap dokumen, NPWP lengkap, data f
 
 - Seluruh endpoint terlindungi menolak token invalid.
 - Tenant A tidak dapat mengakses resource tenant B.
-- Karyawan tanpa document assignment ditolak.
+- Karyawan tanpa hak sebagai pembuat atau penerima document assignment aktif ditolak.
 - Harga checkout tidak dapat dimanipulasi frontend.
 - Webhook duplikat idempotent.
 - AI/document generation retry tidak menggandakan job atau kuota.
 - Penugasan dokumen yang dicabut langsung menutup akses Karyawan.
 - User Induk dan Karyawan yang ditugaskan dapat menyimpan bagian berbeda secara paralel tanpa mengikuti urutan nomor.
 - Penyimpanan berbasis versi lama pada bagian yang sama menghasilkan `409` tanpa menimpa data terbaru.
-- Bagian Review & Generate dapat dibuka saat draft belum lengkap, tetapi hanya User Induk dapat memulai generate setelah validasi berhasil.
+- Bagian Review & Generate dapat dibuka saat draft belum lengkap; User Induk, Karyawan pembuat, atau Karyawan ditugaskan dapat memulai generate setelah validasi berhasil.
+- Pembuatan dokumen oleh Karyawan memakai kuota organisasi tanpa membuka rincian billing; daftar `Dibuat oleh saya` dan `Ditugaskan kepada saya` dipisahkan.
+- Semua endpoint resource memeriksa ulang membership, pembuat, penugasan, status berbagi, dan pengambilalihan. Pencabutan akses menutup preview, versi, serta unduhan. Konflik identitas dengan dokumen privat tidak mengungkap judul, entitas, pembuat, atau keberadaannya kepada pengguna yang tidak berhak.
 - Local File yang tidak lengkap gagal memasuki proses generate.
 - Dokumen yang dihasilkan menggunakan snapshot dan template version yang sama.
 - Admin tidak dapat menetapkan password pengguna.

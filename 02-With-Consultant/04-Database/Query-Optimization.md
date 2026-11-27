@@ -117,8 +117,10 @@ Daftar payment attempt satu request dimulai dari `consultation_request_payments(
 
 | Kebutuhan | Pola query | Target jumlah query |
 | --- | --- | --- |
-| Daftar Local File User Induk | Filter tenant, cursor pagination, assignment count terpilih | 1–2 |
-| Daftar tugas Karyawan | Mulai dari `document_assignments`, join Local File dan membership aktif | 1 |
+| Daftar Local File User Induk | Filter tenant serta dokumen buatan sendiri, dibagikan, atau diambil alih; jangan ambil metadata dokumen privat | 1–2 |
+| Daftar “Dibuat oleh saya” Karyawan | Filter `created_by_user_id`, tenant, membership aktif, dan cursor | 1 |
+| Daftar “Ditugaskan kepada saya” Karyawan | Mulai dari `document_assignments`, join Local File buatan User Induk dan membership aktif | 1 |
+| Daftar konsultasi dan pembayaran jasa | Filter request menurut hak Local File saat ini sebelum projection; User Induk tanpa akses berbagi tidak melihat rincian request dokumen privat | 1–2 |
 | Detail anggota organisasi | Membership + user field minimum + assignment count batch | 1–2 |
 | Dashboard Administrator | Query agregat per domain atau read model terjadwal | Jumlah tetap, tidak berdasarkan jumlah organisasi |
 | Detail Local File editor | Query per bounded aggregate/section, bukan seluruh dokumen sekaligus | Jumlah tetap per section |

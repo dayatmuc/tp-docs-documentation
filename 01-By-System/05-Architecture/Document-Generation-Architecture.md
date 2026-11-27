@@ -71,7 +71,7 @@ flowchart TB
 | Lapisan | Sumber kebenaran | Tanggung jawab |
 | --- | --- | --- |
 | Template DOCX | Tampilan | Cover, margin, font, heading, tabel, header, footer, dan section break |
-| Snapshot | Data generation | Nilai Local File pada saat User Induk mengonfirmasi generate |
+| Snapshot | Data generation | Nilai Local File pada saat pengguna yang berhak mengonfirmasi generate; akses snapshot mengikuti dokumen sumber |
 | View model | Kontrak konten | Data yang sudah diformat agar aman digunakan template |
 | Renderer | Binding | Mengisi placeholder, loop, condition, dan gambar |
 | Validator | Kelayakan file | Memastikan hasil dapat digunakan dan tidak memiliki placeholder tersisa |
@@ -472,7 +472,7 @@ GET /api/document-generations/{generationId}
 GET /api/document-versions/{versionId}/download?format=docx|pdf
 ```
 
-Endpoint men-stream file hanya jika tenant, document ownership, package entitlement, status scan, dan format telah tervalidasi. PDF mendukung HTTP Range dan respons `206`.
+Endpoint men-stream file hanya jika tenant, hak akses resource (pembuat, penugasan aktif, berbagi kepada User Induk, atau pengambilalihan), package entitlement, status scan, dan format telah tervalidasi pada setiap request. Pencabutan berbagi atau penugasan langsung menutup unduhan versi lama. PDF mendukung HTTP Range dan respons `206`.
 
 ### 8.4 Status
 

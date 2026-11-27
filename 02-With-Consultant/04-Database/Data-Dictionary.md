@@ -143,6 +143,7 @@ Upload yang terputus tetap berstatus `UPLOADING` dan dibersihkan oleh job terjad
 | Tabel | Fungsi |
 | --- | --- |
 | `local_files` | Aggregate root Local File: tenant, tahun pajak, status, versi, metode, dan editor terakhir |
+| `local_file_owner_sharing_events` | Riwayat append-only berbagi, pencabutan, dan pengambilalihan akses User Induk |
 | `local_file_section_progress` | Status serta validasi setiap bagian wizard |
 | `local_file_company_profiles` | Identitas entitas untuk tahun pajak dan dokumen tertentu |
 | `document_assignments` | Hak Karyawan terhadap dokumen tertentu |
@@ -150,6 +151,10 @@ Upload yang terputus tetap berstatus `UPLOADING` dan dibersihkan oleh job terjad
 Status Local File: `DRAFT`, `IN_PROGRESS`, `READY_TO_GENERATE`, `GENERATING`, `GENERATED`, dan `ARCHIVED`.
 
 `local_files.identity_hash` menyimpan hash identitas ternormalisasi untuk mencegah duplikasi entitas, tahun pajak, jenis dokumen, dan nama dokumen pada organisasi yang sama. `duplicated_from_local_file_id` mencatat sumber ketika dokumen dibuat melalui aktivitas Duplikasi.
+
+Karyawan aktif dapat membuat Local File dengan kuota organisasi. Dokumen buatannya dimulai privat (`owner_shared = false`). Hanya pembuat aktif dapat mengubah status berbagi kepada User Induk; perubahan dicatat pada `local_file_owner_sharing_events`. Ketika keanggotaan pembuat dicabut, `taken_over_by_user_id` dan `taken_over_at` mencatat User Induk pengambil alih, disertai event `TAKEN_OVER`. Dokumen yang dibuat User Induk dapat ditugaskan kepada Karyawan; dokumen buatan Karyawan tidak dapat ditugaskan ulang oleh User Induk. Indeks `(created_by_user_id, updated_at)` mendukung daftar “Dibuat oleh saya”.
+
+Daftar, pencarian, pengecekan duplikasi, isi, versi, preview, unduhan, dan konsultasi harus memfilter hak dokumen sebelum mengembalikan metadata. User Induk tanpa akses berbagi hanya melihat pemakaian kuota agregat, tidak identitas dokumen privat atau rincian konsultasinya. Akses Konsultan tetap ditentukan oleh assignment konsultasi aktif, bukan status berbagi User Induk.
 
 ### 7.2 Kepemilikan dan manajemen
 

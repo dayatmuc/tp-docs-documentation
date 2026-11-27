@@ -10,7 +10,7 @@ Aktor yang terlibat:
 - **Administrator** memelihara katalog, memantau pembayaran, memproses Enterprise/Custom, dan memproses refund terotorisasi.
 - **Sistem TP Docs** menghitung periode aktif, kuota, kursi, status transaksi, dan hak akses organisasi.
 
-Karyawan hanya mewarisi akses dari perusahaan dan tidak dapat membeli paket, add-on, atau melihat informasi pembayaran.
+Karyawan mewarisi hak paket dan kuota dokumen perusahaan, tetapi tidak dapat membeli paket atau add-on dan tidak melihat informasi pembayaran langganan. Karyawan yang berhak atas Local File dapat membeli layanan konsultasi untuk dokumen tersebut serta melihat pembayaran konsultasinya sendiri.
 
 Referensi use case: `UI-08.1` sampai `UI-08.8`, `UA-05`, `UA-06.5`, dan `UK-02`.
 
@@ -130,9 +130,9 @@ Ketika Basic berhasil ditingkatkan ke Professional, organisasi memperoleh kapasi
 
 ```mermaid
 flowchart TD
-    QUOTA_START([User Induk membuat dokumen baru]) --> QUOTA_STATUS[Ambil paket, periode aktif, dan status organisasi]
+    QUOTA_START([User Induk atau Karyawan aktif membuat dokumen baru]) --> QUOTA_STATUS[Ambil paket, periode aktif, membership, dan status organisasi]
     QUOTA_STATUS --> QUOTA_ACTIVE{"Paket dapat digunakan?"}
-    QUOTA_ACTIVE -- "Tidak" --> QUOTA_BLOCK[Tolak pembuatan dan arahkan ke langganan]
+    QUOTA_ACTIVE -- "Tidak" --> QUOTA_BLOCK[Tolak pembuatan; hanya User Induk mengelola langganan]
     QUOTA_ACTIVE -- "Ya" --> QUOTA_PACKAGE{"Sisa kuota paket tersedia?"}
     QUOTA_PACKAGE -- "Ya" --> QUOTA_CREATE[Buat dokumen baru]
     QUOTA_PACKAGE -- "Tidak" --> QUOTA_ADDON{"Sisa kuota add-on tersedia?"}
@@ -159,6 +159,8 @@ flowchart TD
 ```
 
 Kuota hanya digunakan setelah dokumen berhasil dibuat. Dokumen yang sudah ada tidak dihapus ketika kuota habis atau paket berakhir.
+
+Karyawan melihat total, terpakai, dan sisa kuota organisasi tanpa rincian pembayaran paket. Jika kuota habis, ia meminta User Induk mengelola kapasitas. Dokumen privat buatan Karyawan tetap dihitung dalam kuota agregat tanpa menampilkan metadata kepada User Induk.
 
 ## 7. Flow Pembelian Add-on Dokumen Professional
 
@@ -639,8 +641,8 @@ Audit log mencatat perubahan katalog, quotation, payment reference, status reque
 
 - Harga selalu berasal dari katalog/version atau quotation backend.
 - Perubahan katalog tidak mengubah request lama.
-- Karyawan tidak dapat membayar konsultasi untuk dokumen yang tidak ditugaskan.
-- User Induk dapat melihat seluruh transaksi konsultasi organisasi.
+- Karyawan hanya dapat membayar konsultasi untuk dokumen buatannya atau yang ditugaskan aktif.
+- User Induk melihat transaksi konsultasi untuk dokumen yang dapat diaksesnya. Transaksi konsultasi Karyawan atas dokumen privat tidak membuka identitas atau isi dokumen kepada User Induk sebelum berbagi atau pengambilalihan.
 - Konsultan tidak dapat melihat nominal maupun metode pembayaran.
 - Assignment tidak dapat dibuat sebelum payment `PAID`.
 - Webhook duplikat tidak membuat aktivasi atau assignment ganda.

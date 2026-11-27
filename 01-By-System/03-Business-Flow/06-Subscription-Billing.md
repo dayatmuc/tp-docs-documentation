@@ -130,17 +130,17 @@ Ketika Basic berhasil ditingkatkan ke Professional, organisasi memperoleh kapasi
 
 ```mermaid
 flowchart TD
-    QUOTA_START([User Induk membuat dokumen baru]) --> QUOTA_STATUS[Ambil paket, periode aktif, dan status organisasi]
+    QUOTA_START([User Induk atau Karyawan aktif membuat dokumen baru]) --> QUOTA_STATUS[Ambil paket, periode aktif, membership, dan status organisasi]
     QUOTA_STATUS --> QUOTA_ACTIVE{"Paket dapat digunakan?"}
-    QUOTA_ACTIVE -- "Tidak" --> QUOTA_BLOCK[Tolak pembuatan dan arahkan ke langganan]
+    QUOTA_ACTIVE -- "Tidak" --> QUOTA_BLOCK[Tolak pembuatan; hanya User Induk mengelola langganan]
     QUOTA_ACTIVE -- "Ya" --> QUOTA_PACKAGE{"Sisa kuota paket tersedia?"}
     QUOTA_PACKAGE -- "Ya" --> QUOTA_CREATE[Buat dokumen baru]
     QUOTA_PACKAGE -- "Tidak" --> QUOTA_ADDON{"Sisa kuota add-on tersedia?"}
     QUOTA_ADDON -- "Ya" --> QUOTA_CREATE
     QUOTA_ADDON -- "Tidak" --> QUOTA_PLAN{"Paket aktif"}
-    QUOTA_PLAN -- "Free/Trial" --> QUOTA_UPGRADE[Arahkan upgrade untuk dokumen berikutnya]
-    QUOTA_PLAN -- "Basic" --> QUOTA_PRO[Arahkan upgrade ke Professional]
-    QUOTA_PLAN -- "Professional" --> QUOTA_BUY[Tawarkan add-on satu dokumen]
+    QUOTA_PLAN -- "Free/Trial" --> QUOTA_UPGRADE[User Induk dapat upgrade untuk dokumen berikutnya]
+    QUOTA_PLAN -- "Basic" --> QUOTA_PRO[User Induk dapat upgrade ke Professional]
+    QUOTA_PLAN -- "Professional" --> QUOTA_BUY[User Induk dapat membeli add-on satu dokumen]
     QUOTA_PLAN -- "Enterprise/Custom" --> QUOTA_CONTRACT[Tampilkan batas sesuai quotation]
     QUOTA_CREATE --> QUOTA_SUCCESS{"Dokumen berhasil dibuat?"}
     QUOTA_SUCCESS -- "Tidak" --> QUOTA_KEEP[Kuota tidak dikurangi]
@@ -159,6 +159,8 @@ flowchart TD
 ```
 
 Kuota hanya digunakan setelah dokumen berhasil dibuat. Dokumen yang sudah ada tidak dihapus ketika kuota habis atau paket berakhir.
+
+Karyawan melihat total, terpakai, dan sisa kuota organisasi tanpa rincian pembayaran. Jika kuota habis, Karyawan tidak membuka checkout; ia meminta User Induk mengelola kapasitas. Dokumen buatan Karyawan yang privat tetap dihitung dalam kuota agregat, tanpa menampilkan metadata atau isi kepada User Induk.
 
 ## 7. Flow Pembelian Add-on Dokumen Professional
 

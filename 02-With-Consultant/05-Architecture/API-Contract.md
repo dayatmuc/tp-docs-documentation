@@ -124,9 +124,9 @@ Error tidak mengungkap secret, stack trace, query, provider response mentah, ata
 | Profil pribadi | Sendiri | Sendiri | Sendiri | Sendiri |
 | Organisasi | Kelola | Baca terbatas | Tidak | Metadata operasional |
 | Anggota | Kelola | Tidak | Tidak | Tidak mengubah membership pelanggan |
-| Local File | Semua organisasi | Ditugaskan | Assignment konsultasi | Tidak otomatis |
-| Subscription | Kelola | Tidak | Tidak | Operasional |
-| Konsultasi | Semua organisasi | Request miliknya/dokumen ditugaskan | Assignment miliknya | Kelola platform |
+| Local File | Buatan sendiri, dibagikan Karyawan, atau diambil alih | Buatan sendiri atau ditugaskan aktif | Assignment konsultasi | Tidak otomatis |
+| Subscription | Kelola; lihat kuota agregat | Lihat kuota dokumen agregat, tanpa billing | Tidak | Operasional |
+| Konsultasi | Dokumen yang dapat diakses | Request miliknya pada dokumen buatan sendiri/ditugaskan | Assignment miliknya | Kelola platform |
 | Harga/payment | Ya | Payment miliknya | Tidak | Sesuai kewenangan |
 | Katalog konsultasi | Baca | Baca | Tidak | Kelola |
 | Working copy approval | Request sendiri; ambil alih bila hak pemohon dicabut | Request sendiri dengan penugasan dan hak ubah aktif | Menyerahkan hasil, tidak menyetujui | Operasional |
@@ -240,8 +240,8 @@ Checkout dan quotation memakai endpoint yang ada. Backend mengembalikan original
 | POST | `/api/organizations/{organizationId}/subscription/checkout` | Owner | Checkout paket |
 | POST | `/api/organizations/{organizationId}/subscription/upgrade` | Owner | Upgrade paket |
 | POST | `/api/organizations/{organizationId}/subscription/cancel` | Owner | Batalkan renewal sesuai kebijakan |
-| GET | `/api/organizations/{organizationId}/quotas` | Owner | Kuota dokumen/kursi |
-| GET | `/api/organizations/{organizationId}/quota-ledger` | Owner | Histori perubahan kuota |
+| GET | `/api/organizations/{organizationId}/quotas` | Owner/Member aktif | Kuota dokumen agregat untuk keduanya; rincian kursi/billing hanya Owner |
+| GET | `/api/organizations/{organizationId}/quota-ledger` | Owner | Histori kuota; dokumen privat hanya berupa agregat tanpa ID atau metadata |
 | POST | `/api/organizations/{organizationId}/addons/documents/checkout` | Owner | Beli dokumen tambahan |
 | POST | `/api/organizations/{organizationId}/addons/seats/checkout` | Owner | Beli kursi tambahan |
 | GET | `/api/organizations/{organizationId}/addons` | Owner | Daftar add-on |
@@ -304,16 +304,18 @@ Upload memakai field file serta metadata `purpose`, organization context, dan ta
 | Method | Endpoint | Auth | Fungsi |
 | --- | --- | --- | --- |
 | GET | `/api/organizations/{organizationId}/local-files` | Member | Daftar sesuai permission |
-| POST | `/api/organizations/{organizationId}/local-files` | Owner/Employee allowed | Buat Local File |
-| GET | `/api/local-files/{localFileId}` | Assigned | Detail dan progress |
-| PATCH | `/api/local-files/{localFileId}` | Assigned | Update metadata |
-| DELETE | `/api/local-files/{localFileId}` | Owner | Hapus sesuai retensi |
-| POST | `/api/local-files/{localFileId}/duplicate` | Owner/Assigned | Duplikasi |
+| POST | `/api/organizations/{organizationId}/local-files` | Owner/Member aktif | Buat Local File dengan kuota organisasi; buatan Karyawan dimulai privat |
+| GET | `/api/local-files/{localFileId}` | Resource access | Detail dan progress sesuai pembuat, penugasan, berbagi, atau pengambilalihan |
+| PATCH | `/api/local-files/{localFileId}` | Resource write | Update metadata |
+| DELETE | `/api/local-files/{localFileId}` | Resource owner | Hapus sesuai retensi |
+| POST | `/api/local-files/{localFileId}/duplicate` | Resource access + kuota | Duplikasi dengan privasi awal sesuai pembuat baru |
+| GET | `/api/local-files/{localFileId}/owner-sharing` | Creator/Shared owner | Status berbagi dengan User Induk |
+| PUT | `/api/local-files/{localFileId}/owner-sharing` | Employee creator aktif | Beri atau cabut akses lihat/ubah User Induk; langsung berlaku dan diaudit |
 | GET | `/api/local-files/{localFileId}/sections` | Assigned | Progress section |
 | PATCH | `/api/local-files/{localFileId}/sections/{sectionCode}` | Assigned | Update status section |
 | POST | `/api/local-files/{localFileId}/validate` | Assigned | Validasi kelengkapan |
 | GET | `/api/local-files/{localFileId}/history` | Assigned | Histori perubahan |
-| GET | `/api/local-files/{localFileId}/audit-events` | Owner | Audit dokumen |
+| GET | `/api/local-files/{localFileId}/audit-events` | Resource owner | Audit dokumen sesuai akses pembuat atau pengambilalihan |
 
 ## 14. Profil Perusahaan, Kepemilikan, dan Bisnis
 
@@ -463,12 +465,12 @@ Response `202 Accepted` mengembalikan `generationId`, `status: QUEUED`, dan poll
 | GET | `/api/local-files/{id}/warnings` | Assigned | Warning rentang/data |
 | POST | `/api/local-files/{id}/warnings/recalculate` | Assigned | Hitung ulang |
 | POST | `/api/local-files/{id}/generations` | Assigned | Buat job DOCX/PDF |
-| GET | `/api/document-generations/{generationId}` | Tenant owner | Status generation |
-| GET | `/api/local-files/{id}/document-versions` | Assigned | Histori version |
-| GET | `/api/local-files/{id}/document-versions/compare?fromVersionId={a}&toVersionId={b}` | Owner/Assigned | Diff baca saja dari dua snapshot hasil generate milik Local File yang sama; ringkasan bagian berubah dan nilai sebelum/sesudah |
+| GET | `/api/document-generations/{generationId}` | Resource access | Status generation |
+| GET | `/api/local-files/{id}/document-versions` | Resource access | Histori version |
+| GET | `/api/local-files/{id}/document-versions/compare?fromVersionId={a}&toVersionId={b}` | Resource access | Diff baca saja dari dua snapshot hasil generate milik Local File yang sama; ringkasan bagian berubah dan nilai sebelum/sesudah |
 | GET | `/api/document-versions/{versionId}` | Resource permission | Metadata version |
-| GET | `/api/document-versions/{versionId}/download?format=docx\|pdf` | Resource permission | Stream DOCX/PDF setelah validasi paket, tenant, dan assignment |
-| POST | `/api/document-versions/{versionId}/clone` | Owner/Assigned | Clone sebagai dokumen baru |
+| GET | `/api/document-versions/{versionId}/download?format=docx\|pdf` | Resource permission | Stream DOCX/PDF setelah validasi paket, tenant, pembuat/penugasan/berbagi/pengambilalihan |
+| POST | `/api/document-versions/{versionId}/clone` | Resource access + kuota | Clone sebagai dokumen baru dengan privasi awal sesuai pembuat baru |
 
 Respons perbandingan memuat `fromVersionId`, `toVersionId`, `changedSections`, serta daftar perubahan per bagian (`path`, `before`, `after`, `changeType`). Nilai sensitif hanya dikirim kepada pengguna yang berhak membaca kedua versi. `400` untuk dua ID sama atau versi dari Local File berbeda; `404` untuk versi yang tidak ada atau tidak boleh diakses; `422` bila snapshot/schema tidak dapat dibandingkan. Hasil perbandingan tidak disimpan sebagai versi baru dan tidak memodifikasi dokumen. Pagination pada daftar History Versi menggunakan urutan `version_number DESC` dan cursor stabil.
 
@@ -478,7 +480,7 @@ Respons perbandingan memuat `fromVersionId`, `toVersionId`, `changedSections`, s
 | --- | --- | --- | --- |
 | GET | `/api/consultation-services` | User organisasi | Service version aktif |
 | GET | `/api/consultation-services/{serviceId}` | User organisasi | Detail layanan aman |
-| GET | `/api/document-versions/{versionId}/consultation-eligibility` | Owner/Assigned Employee | Cek kelayakan |
+| GET | `/api/document-versions/{versionId}/consultation-eligibility` | Resource access | Cek kelayakan berdasarkan pembuat, penugasan, berbagi, atau pengambilalihan |
 
 Response katalog hanya memuat data display. Field internal, histori harga, margin, dan konfigurasi Admin tidak dikirim.
 
@@ -486,8 +488,8 @@ Response katalog hanya memuat data display. Field internal, histori harga, margi
 
 | Method | Endpoint | Auth | Fungsi |
 | --- | --- | --- | --- |
-| POST | `/api/document-versions/{versionId}/consultation-requests` | Owner/Assigned Employee | Membuat request |
-| GET | `/api/organizations/{organizationId}/consultation-requests` | Owner/Employee scoped | Daftar request |
+| POST | `/api/document-versions/{versionId}/consultation-requests` | Resource write | Membuat request pada dokumen yang boleh diubah |
+| GET | `/api/organizations/{organizationId}/consultation-requests` | Resource scoped | Daftar request tanpa metadata request dokumen privat bagi User Induk yang belum diberi akses |
 | GET | `/api/consultation-requests/{requestId}` | Owner/Requester | Detail dan status |
 | PATCH | `/api/consultation-requests/{requestId}` | Requester | Update draft/revision requested |
 | POST | `/api/consultation-requests/{requestId}/submit` | Requester | Kirim request quotation |
@@ -507,13 +509,15 @@ Response katalog hanya memuat data display. Field internal, histori harga, margi
 | POST | `/api/consultation-requests/{requestId}/resubmit` | Owner/Requester | Ajukan version baru |
 | GET | `/api/consultation-requests/{requestId}/revision-balance` | Owner/Requester | Revisi terpakai/tersisa |
 | POST | `/api/consultation-requests/{requestId}/additional-review` | Owner/Requester | Buat order tambahan |
-| GET | `/api/consultation-requests/{requestId}/workspace-deliveries` | Owner/Requester | Draft Penyusunan Penuh; requester hanya request sendiri dengan penugasan aktif |
+| GET | `/api/consultation-requests/{requestId}/workspace-deliveries` | Owner/Requester dengan hak dokumen | Draft Penyusunan Penuh; requester dengan hak sebagai pembuat atau penugasan aktif |
 | GET | `/api/consultation-requests/{requestId}/workspace-deliveries/{deliveryId}` | Owner/Requester | Detail preview/change set sesuai akses request |
 | POST | `/api/consultation-requests/{requestId}/workspace-deliveries/{deliveryId}/feedback` | Requester dengan hak ubah/Owner pengambil alih | Minta revisi |
 | POST | `/api/consultation-requests/{requestId}/workspace-deliveries/{deliveryId}/approve` | Requester dengan hak ubah/Owner pengambil alih + re-auth | Setujui delivery tertentu |
 | POST | `/api/consultation-requests/{requestId}/workspace/promote` | Requester dengan hak ubah/Owner pengambil alih + idempotency | Terapkan sebagai versi baru |
 
-Pada feedback, approval, dan promotion, backend memvalidasi identitas `requested_by_user_id`, organisasi, Local File, penugasan Karyawan beserta hak ubah, delivery dan versi workspace. Owner hanya mengambil alih keputusan request Karyawan bila hak ubah pemohon telah dicabut; alasan dan aktor dicatat dalam audit. Promotion memvalidasi ulang hak dan approval untuk delivery yang sama, menggunakan transaksi dan idempotency agar retry mengembalikan versi hasil yang sama. Konsultan dan Karyawan tanpa hak ubah ditolak.
+Pada feedback, approval, dan promotion, backend memvalidasi identitas `requested_by_user_id`, organisasi, Local File, hak pembuat atau penugasan Karyawan beserta hak ubah, delivery, dan versi workspace. User Induk hanya mengambil alih keputusan request Karyawan bila hak ubah pemohon telah dicabut; alasan dan aktor dicatat dalam audit. Promotion memvalidasi ulang hak dan approval untuk delivery yang sama, menggunakan transaksi dan idempotency agar retry mengembalikan versi hasil yang sama. Konsultan dan Karyawan tanpa hak ubah ditolak.
+
+`Resource access` berarti pembuat dengan membership aktif, Karyawan dengan penugasan aktif pada dokumen buatan User Induk, User Induk pada dokumen buatannya atau yang dibagikan Karyawan, serta User Induk penerima pengambilalihan. `Resource write` mencakup hak yang sama untuk pengisian dan generate; `Resource owner` berarti pembuat aktif atau User Induk setelah pengambilalihan. Setiap endpoint Local File, file biner, versi, request konsultasi, quotation, payment, komentar, delivery, dan working copy memeriksa hak dokumen saat dibaca. Konsultan hanya memperoleh akses melalui assignment konsultasi yang sah. Pencabutan berbagi atau penugasan langsung menutup akses terkait.
 
 Histori payment request berasal dari `consultation_request_payments` berurut `attempt_number`; status tiap attempt dibaca dari `payments`. Retry menambah attempt, tidak menimpa yang lama. Webhook yang sah mengaktifkan request sekali melalui lock dan idempotency. Detail delivery Review membaca isi komentar dari `review_delivery_comments` yang dibekukan pada waktu publish, sedangkan detail delivery Penyusunan Penuh membaca snapshot dari `consultation_workspace_deliveries`; perubahan komentar atau workspace berikutnya tidak mengubah respons delivery lama.
 
@@ -962,7 +966,7 @@ Audit tidak menyimpan password, token, full document text, comment body penuh, N
 
 - Seluruh endpoint terlindungi menolak token invalid.
 - Tenant A tidak dapat mengakses resource tenant B.
-- Karyawan tanpa document assignment ditolak.
+- Karyawan tanpa hak sebagai pembuat atau penerima document assignment aktif ditolak.
 - Konsultan tanpa active assignment ditolak.
 - DTO Konsultan tidak memiliki field harga/payment.
 - Harga checkout tidak dapat dimanipulasi frontend.

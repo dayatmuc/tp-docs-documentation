@@ -13,11 +13,13 @@ Dokumen ini memuat kebutuhan fungsional terperinci untuk TP Docs versi **With Co
 | FR-05 | Sistem mendukung impor, validasi, pengolahan, dan summary transaksi                                                                                                                                        | UI-04.08                   |
 | FR-06 | Sistem mendukung analisis FAR, pemilihan metode, dan evaluasi metode TP                                                                                                                                    | UI-04.09                   |
 | FR-07 | Sistem mengelola data pembanding, PLI, pembanding final, dan rentang kewajaran                                                                                                                             | UI-05, UI-07               |
-| FR-08 | Sistem menyediakan preview, warning, dan generate draft Local File                                                                                                                                         | UI-04.11                   |
+| FR-08 | Sistem menyediakan preview, warning, dan generate draft Local File bagi User Induk atau Karyawan aktif yang berhak setelah validasi final. | UI-04.11, UK-03, UK-04 |
 | FR-09 | Sistem menyediakan history, duplikasi dokumen, pustaka pembanding, dan Settings                                                                                                                            | UI-06, UI-07, UI-09        |
 | FR-10 | Sistem mengirim notifikasi dan mencatat aktivitas penting, ekspor, serta penghapusan data                                                                                                                  | UI-01, UI-08, UI-09, UK-01 |
 | FR-11 | Sistem menyediakan portal dan dashboard operasional, maintenance mode, pengaturan dasar, billing, pengelolaan akun, pengajuan Enterprise/Custom, keamanan, integrasi, backup, dan audit bagi Administrator | UA-01 s/d UA-09            |
 | FR-12 | Admin mengelola promosi opsional; User Induk melihat harga normal atau promo, termasuk untuk jasa konsultasi. Sistem memilih satu potongan terbesar yang memenuhi syarat, membekukan harga saat transaksi, dan mempertahankan harga transaksi lama. | UI-08.1, UI-08.6, UA-05.6 |
+| FR-13 | User Induk, Karyawan pembuat, dan Karyawan ditugaskan mengisi Local File dalam urutan bebas. Sistem mencatat pengubah dan versi bagian serta menolak penyimpanan yang menimpa perubahan baru. | UI-04, UI-08.5, UK-03, UK-04 |
+| FR-14 | Karyawan aktif melihat kuota organisasi dan membuat Local File privat dengan kuota bersama. Pembuat mengendalikan berbagi dengan User Induk; pencabutan membership memindahkan akses dengan audit. Daftar, versi, file, dan request konsultasi privat tidak bocor melalui tampilan organisasi. | UK-02, UK-04, UK-C02, UI-08.4 |
 
 ---
 
@@ -32,7 +34,7 @@ Kebutuhan inti TP Docs telah dijelaskan pada bagian sebelumnya. Tabel berikut me
 | FR-C03 | Admin mengelola katalog, model harga, currency, SLA, revisi, version, dan aktivasi layanan | UA |
 | FR-C04 | Sistem hanya menampilkan harga dari service version aktif atau quotation | UI, UK, UA |
 | FR-C05 | Sistem membuat request hanya dari document version `SUCCEEDED` | UI, UK |
-| FR-C06 | Karyawan hanya dapat mengajukan dokumen yang ditugaskan dan hanya melihat payment yang dibuatnya | UK |
+| FR-C06 | Karyawan hanya dapat mengajukan dokumen buatannya atau yang ditugaskan aktif dan hanya melihat payment konsultasi yang dibuatnya | UK-C02, UK-C03 |
 | FR-C07 | Sistem menyimpan snapshot harga, currency, SLA, revisi, dan service version pada order | UI, UK |
 | FR-C08 | Sistem memproses dan menyimpan seluruh percobaan payment konsultasi melalui provider, webhook terverifikasi, dan idempotency tanpa aktivasi ganda | UI, UK, UA |
 | FR-C09 | Admin membuat quotation Penyusunan Penuh dan pengguna menerima atau menolaknya | UI, UK, UA |

@@ -830,6 +830,9 @@ Table local_files {
   id uuid [pk]
   organization_id uuid [not null, ref: > organizations.id]
   created_by_user_id uuid [not null, ref: > users.id]
+  owner_shared boolean [not null, default: false, note: 'Hanya bermakna bagi dokumen buatan Karyawan; User Induk selalu mengakses dokumen buatannya']
+  taken_over_by_user_id uuid [ref: > users.id, note: 'User Induk penerima akses setelah membership pembuat dicabut']
+  taken_over_at timestamptz
   title varchar(255) [not null]
   tax_year int [not null]
   identity_hash varchar(128) [not null]
@@ -850,6 +853,21 @@ Table local_files {
     (organization_id, identity_hash) [unique, name: 'uq_local_file_identity']
     (organization_id, tax_year, created_at) [name: 'idx_local_files_org_tax_year']
     (organization_id, status, updated_at) [name: 'idx_local_files_org_status']
+    (created_by_user_id, updated_at) [name: 'idx_local_files_creator_updated']
+  }
+}
+
+Table local_file_owner_sharing_events {
+  id uuid [pk]
+  organization_id uuid [not null, ref: > organizations.id]
+  local_file_id uuid [not null, ref: > local_files.id]
+  actor_user_id uuid [not null, ref: > users.id]
+  action varchar(20) [not null, note: 'SHARED, REVOKED, atau TAKEN_OVER']
+  reason text
+  occurred_at timestamptz [not null]
+
+  indexes {
+    (local_file_id, occurred_at) [name: 'idx_owner_sharing_event_file_time']
   }
 }
 

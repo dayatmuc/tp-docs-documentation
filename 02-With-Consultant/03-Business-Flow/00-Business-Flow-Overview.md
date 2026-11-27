@@ -248,6 +248,15 @@ flowchart TD
     UK_MEMBERSHIP --> UK_ACCESS[Memperoleh fitur sesuai paket dan masa aktif perusahaan]
 
     UK_ACCESS --> UK_COMPANY[Melihat perusahaan induk]
+    UK_ACCESS --> UK_QUOTA[Melihat kuota dokumen organisasi]
+    UK_QUOTA --> UK_CREATE[Buat Local File privat dengan kuota bersama]
+    UK_CREATE --> UK_SHARE{Bagikan kepada User Induk?}
+    UK_SHARE -- Ya --> UK_GRANT[Berikan hak lihat dan ubah]
+    UK_SHARE -- Tidak --> UK_EDIT[Isi bagian 01–10 bebas urutan]
+    UK_GRANT --> UK_EDIT
+    UK_EDIT --> UK_GENERATE[Validasi bagian 11 dan generate bila lengkap]
+    UK_ACCESS --> UK_ASSIGNED[Buka Local File yang ditugaskan User Induk]
+    UK_ASSIGNED --> UK_EDIT
     UK_COMPANY --> UK_PACKAGE[Melihat paket yang diwarisi]
     UK_PACKAGE --> UK_STATUS[Melihat status membership]
     UK_STATUS --> UK_EXPIRY[Melihat masa berlaku akses]
@@ -262,8 +271,8 @@ flowchart TD
     classDef process fill:#438fe6,color:#fff,stroke:#2875c7,stroke-width:1.5px;
     classDef decision fill:#1761cf,color:#fff,stroke:#104ba3,stroke-width:2px;
     class UK_START,UK_END,UK_FINISH terminal;
-    class UK_OPEN,UK_REGISTER,UK_VERIFY,UK_LOGIN,UK_CONTINUE,UK_VALIDATE,UK_INVALID,UK_REJECT,UK_MEMBERSHIP,UK_ACCESS,UK_COMPANY,UK_PACKAGE,UK_STATUS,UK_EXPIRY,UK_AVAILABLE,UK_EXPIRED,UK_PERSONAL process;
-    class UK_ACCOUNT,UK_VALID,UK_DECISION,UK_ACTIVE decision;
+    class UK_OPEN,UK_REGISTER,UK_VERIFY,UK_LOGIN,UK_CONTINUE,UK_VALIDATE,UK_INVALID,UK_REJECT,UK_MEMBERSHIP,UK_ACCESS,UK_QUOTA,UK_CREATE,UK_GRANT,UK_EDIT,UK_GENERATE,UK_ASSIGNED,UK_COMPANY,UK_PACKAGE,UK_STATUS,UK_EXPIRY,UK_AVAILABLE,UK_EXPIRED,UK_PERSONAL process;
+    class UK_ACCOUNT,UK_VALID,UK_DECISION,UK_ACTIVE,UK_SHARE decision;
 ```
 
 ## 5. Overview Business Flow — Administrator

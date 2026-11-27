@@ -17,8 +17,8 @@ Harga, currency, SLA, dan revisi tidak ditetapkan permanen dalam dokumen ini. Se
 
 | Aktor | Tanggung jawab dalam layanan |
 | --- | --- |
-| User Induk | Membuat request untuk seluruh dokumen organisasi, membayar, melihat seluruh status, menindaklanjuti review, menyetujui hasil request sendiri, dan mengambil alih persetujuan bila hak pemohon Karyawan dicabut |
-| Karyawan | Membuat dan membayar request hanya untuk dokumen yang ditugaskan, melihat transaksi sendiri, serta meninjau dan menyetujui hasil Penyusunan Penuh yang diajukannya selama hak ubah Local File masih aktif |
+| User Induk | Membuat request untuk dokumen yang dapat diaksesnya, membayar, melihat status yang berhak, menindaklanjuti review, menyetujui hasil request sendiri, dan mengambil alih persetujuan bila hak pemohon Karyawan dicabut |
+| Karyawan | Membuat dan membayar request untuk dokumen buatannya atau yang ditugaskan, melihat transaksi sendiri, serta meninjau dan menyetujui hasil Penyusunan Penuh yang diajukannya selama hak ubah Local File masih aktif |
 | Konsultan | Menerima assignment, mengonfirmasi ETA, melakukan review atau Penyusunan Penuh, dan menyerahkan hasil |
 | Administrator | Mengelola katalog, quotation, akun Konsultan, assignment, perubahan ETA, payment monitoring, refund, dan SLA |
 | Sistem | Memvalidasi kewenangan, menyimpan snapshot, mengatur status, membatasi akses, mengirim notifikasi, dan mencatat audit |
@@ -31,7 +31,7 @@ Request konsultasi hanya dapat dibuat apabila:
 2. Organisasi serta langganan memenuhi aturan akses platform.
 3. Local File dan document version berada pada organisasi yang sama.
 4. Document generation berstatus `SUCCEEDED`.
-5. User Induk memiliki hak penuh, atau Karyawan ditugaskan pada dokumen tersebut.
+5. Pemohon memiliki hak atas dokumen sebagai pembuat aktif, penerima berbagi, Karyawan yang ditugaskan aktif, atau User Induk penerima pengambilalihan.
 6. Service version masih aktif ketika request dibuat.
 7. Document version belum dihapus atau berada dalam proses penghapusan.
 8. Tidak ada request aktif yang dilarang duplikat oleh kebijakan layanan.
@@ -377,7 +377,7 @@ Dokumen, komentar, review, working copy, dan hasil tetap dimiliki organisasi. Pe
 | --- | --- |
 | Service dinonaktifkan sebelum request tersimpan | Tolak request dan muat ulang katalog |
 | Document version tidak valid | Tolak tanpa membuat order |
-| Karyawan tidak ditugaskan | Kembalikan 403 dan audit |
+| Karyawan bukan pembuat dan tidak ditugaskan aktif | Kembalikan 403 dan audit |
 | Payment webhook duplikat | Kembalikan hasil idempotent |
 | Konsultan menolak assignment | Tutup akses dan minta reassignment |
 | Konsultan melebihi kapasitas | Tolak assignment atau minta Admin memilih pihak lain |
@@ -393,7 +393,7 @@ Dokumen, komentar, review, working copy, dan hasil tetap dimiliki organisasi. Pe
 
 - Request hanya dapat dibuat dari document version `SUCCEEDED`.
 - Harga selalu berasal dari service version atau quotation backend.
-- Karyawan hanya dapat menggunakan dokumen yang ditugaskan.
+- Karyawan hanya dapat menggunakan dokumen buatannya atau yang ditugaskan aktif. Request dan hasil konsultasi pada dokumen privat tidak terlihat oleh User Induk sebelum berbagi atau pengambilalihan.
 - Request belum dibayar tidak terlihat oleh Konsultan.
 - Assignment ditolak dapat diberikan kepada Konsultan lain.
 - ETA dan seluruh perubahannya terlihat oleh pengguna.

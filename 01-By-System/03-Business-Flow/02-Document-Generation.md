@@ -13,7 +13,7 @@ Flow ini merupakan kelanjutan dari [03-Local-File-Management.md](./03-Local-File
 - `UI-04.11.2 — Generate Docs`.
 - `UI-06 — Melihat History Dokumen`.
 
-Dokumen yang dihasilkan TP Docs tetap berstatus **draft** dan wajib ditinjau User Induk. Sistem tidak mengirim dokumen langsung kepada DJP.
+Dokumen yang dihasilkan TP Docs tetap berstatus **draft** dan wajib ditinjau pengguna yang melakukan generate. Sistem tidak mengirim dokumen langsung kepada DJP.
 
 ## 2. Prasyarat Generate
 
@@ -26,18 +26,18 @@ Dokumen yang dihasilkan TP Docs tetap berstatus **draft** dan wajib ditinjau Use
 | Transaksi | Data afiliasi, independen, dan summary dapat diproses |
 | Analisis FAR | Fungsi, aset, risiko, metode, pihak dianalisis, PLI, dan alasan tersedia |
 | Pembanding | Strategi, PLI, pembanding final, serta rentang interkuartil tersedia |
-| Hak akses | User Induk memiliki akses terhadap organisasi dan dokumen |
+| Hak akses | User Induk, Karyawan pembuat, atau Karyawan dengan penugasan aktif memiliki akses terhadap dokumen dan organisasi |
 | Paket | Format output yang dipilih diizinkan oleh paket aktif |
 
 Kuota dokumen telah digunakan ketika dokumen baru berhasil dibuat. Menekan generate tidak mengurangi kuota dokumen untuk kedua kalinya.
 
-Bagian Review & Generate dapat dibuka kapan saja oleh User Induk dan Karyawan yang ditugaskan untuk melihat kelengkapan draft bersama. Urutan pengisian bagian 01–10 bebas. Hanya User Induk yang dapat memberi konfirmasi final dan memulai generate setelah seluruh validasi lulus.
+Bagian Review & Generate dapat dibuka kapan saja oleh pengguna yang berhak mengakses dokumen. Urutan pengisian bagian 01–10 bebas. User Induk, Karyawan pembuat, dan Karyawan dengan penugasan aktif dapat memberi konfirmasi final serta memulai generate setelah seluruh validasi lulus. Hasil dokumen privat tetap privat dari User Induk hingga dibagikan atau diambil alih setelah membership pembuat dicabut.
 
 ## 3. Flow Pemeriksaan Kesiapan Generate
 
 ```mermaid
 flowchart TD
-    DG_START([User Induk memilih Review and Generate]) --> DG_LOAD[Muat data Local File terbaru]
+    DG_START([Pengguna berhak memilih Review and Generate]) --> DG_LOAD[Muat data Local File terbaru]
     DG_LOAD --> DG_ACCESS[Validasi organisasi, hak akses, dan status dokumen]
     DG_ACCESS --> DG_ACCESS_OK{"Akses valid?"}
     DG_ACCESS_OK -- "Tidak" --> DG_DENIED[Tolak proses dan tampilkan alasan akses]
@@ -105,7 +105,7 @@ Warning di luar rentang wajar tidak otomatis mengubah data atau memberikan opini
 
 ```mermaid
 flowchart TD
-    GG_START([User Induk mengonfirmasi Generate Docs]) --> GG_FORMAT[Pilih format output yang tersedia pada paket]
+    GG_START([Pengguna berhak mengonfirmasi Generate Docs]) --> GG_FORMAT[Pilih format output yang tersedia pada paket]
     GG_FORMAT --> GG_ALLOWED{"Format diizinkan paket aktif?"}
     GG_ALLOWED -- "Tidak" --> GG_UPGRADE[Tampilkan batas paket dan pilihan upgrade]
     GG_UPGRADE --> GG_END_UPGRADE([Generate format tersebut dibatalkan])
@@ -139,7 +139,7 @@ flowchart TD
     class GG_ALLOWED,GG_SUCCESS,GG_RETRY decision;
 ```
 
-Target proses generate adalah maksimal lima menit. Sistem harus menampilkan progress sehingga User Induk tidak perlu mengirim permintaan generate berulang kali.
+Target proses generate adalah maksimal lima menit. Sistem harus menampilkan progress sehingga pengguna tidak perlu mengirim permintaan generate berulang kali.
 
 ## 6. Flow History, Buka, dan Duplikasi Dokumen
 
@@ -176,7 +176,7 @@ flowchart TD
 
 ### 6.1 Perbandingan History Versi
 
-User Induk memilih satu Local File dari History Dokumen, lalu membuka panel **History Versi**. Daftar versi hasil generate ditampilkan terbaru dahulu dan dimuat bertahap agar puluhan versi tetap dapat ditelusuri. Draft yang sedang dikerjakan ditampilkan terpisah; draft bukan versi hasil generate.
+Pengguna yang berhak memilih satu Local File dari History Dokumen, lalu membuka panel **History Versi**. Daftar versi hasil generate ditampilkan terbaru dahulu dan dimuat bertahap agar puluhan versi tetap dapat ditelusuri. Dokumen privat buatan Karyawan tidak ditampilkan kepada User Induk sebelum dibagikan atau diambil alih. Draft yang sedang dikerjakan ditampilkan terpisah; draft bukan versi hasil generate.
 
 Pengguna dapat memilih tepat dua versi hasil generate dari Local File yang sama sebagai titik A dan B. Sistem memeriksa izin akses, mengambil dua `document_snapshots` immutable yang terkait dengan `document_versions`, lalu membandingkan data terstruktur per bagian. Ringkasan menampilkan bagian yang berubah dan nilai sebelum/sesudah; rincian dapat dibuka per bagian. Perbedaan format DOCX/PDF atau template saja tidak boleh diklaim sebagai perubahan data. Jika snapshot menggunakan schema berbeda, sistem menormalisasi dengan pemetaan yang didukung atau menampilkan bahwa perbandingan bagian tersebut tidak tersedia.
 

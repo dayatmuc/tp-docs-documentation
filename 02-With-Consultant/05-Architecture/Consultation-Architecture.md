@@ -180,16 +180,16 @@ Authenticated session
 
 ### 6.1 User Induk
 
-- Dapat membuat request dari seluruh document version organisasinya.
-- Dapat melihat seluruh request dan transaksi konsultasi organisasi.
+- Dapat membuat request dari document version yang dapat diaksesnya: dokumen buatannya, dokumen Karyawan yang dibagikan, atau yang diambil alih.
+- Dapat melihat request dan transaksi konsultasi terkait dokumen yang dapat diaksesnya. Request pada dokumen privat Karyawan tidak mengungkap metadata atau isi sebelum berbagi/pengambilalihan.
 - Dapat menyetujui hasil request sendiri; dapat mengambil alih keputusan request Karyawan bila hak ubah pemohon dicabut, dengan alasan dan jejak audit.
 
 ### 6.2 Karyawan
 
 - Harus memiliki membership aktif.
-- Harus memiliki `document_assignments` aktif pada Local File.
+- Harus menjadi pembuat aktif Local File atau memiliki `document_assignments` aktif pada dokumen buatan User Induk.
 - Hanya melihat request atau payment konsultasi yang dibuatnya, kecuali kebijakan organisasi kelak diperluas.
-- Dapat menyetujui hasil request sendiri selama assignment dan hak ubah Local File masih aktif; tidak dapat menyetujui request orang lain.
+- Dapat menyetujui hasil request sendiri selama hak ubah sebagai pembuat atau penerima penugasan masih aktif; tidak dapat menyetujui request orang lain.
 
 ### 6.3 Konsultan
 
@@ -393,7 +393,7 @@ Delivery Penyusunan Penuh menyimpan preview, change summary, catatan, revision, 
 
 Setiap penerbitan membuat `consultation_workspace_deliveries` baru dengan snapshot data, versi workspace, referensi versi dokumen sumber, serta file hasil yang immutable. Edit workspace sesudah delivery tidak mengubah snapshot lama; revisi berikutnya menambah revision baru.
 
-1. memvalidasi pemohon, penugasan dan hak ubah Local File yang masih aktif, atau pengambilalihan User Induk setelah hak pemohon dicabut; validasi dilakukan lagi saat promotion;
+1. memvalidasi pemohon, hak sebagai pembuat atau penerima penugasan dan hak ubah Local File yang masih aktif, atau pengambilalihan User Induk setelah hak pemohon dicabut; validasi dilakukan lagi saat promotion;
 2. memeriksa conflict baseline;
 3. menjalankan transaction database;
 4. membuat Local File version baru;

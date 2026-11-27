@@ -9,7 +9,7 @@ Dokumen ini membandingkan dua alternatif pemrosesan yang akan dievaluasi sebelum
 1. AI melalui API eksternal berbayar.
 2. AI lokal yang dijalankan pada server TP Docs.
 
-Kedua alternatif merupakan pilihan arsitektur internal. User Induk hanya berinteraksi dengan tombol **Generate Skema AI** dan tidak memilih provider AI dari antarmuka aplikasi. Implementasi final hanya akan menggunakan satu alternatif berdasarkan hasil benchmark. Local File tetap dapat dilanjutkan ketika AI tidak digunakan atau generation gagal.
+Kedua alternatif merupakan pilihan arsitektur internal. Pengguna yang berhak mengubah Local File hanya berinteraksi dengan tombol **Generate Skema AI** dan tidak memilih provider AI dari antarmuka aplikasi. Implementasi final hanya akan menggunakan satu alternatif berdasarkan hasil benchmark. Local File tetap dapat dilanjutkan ketika AI tidak digunakan atau generation gagal.
 
 Referensi use case:
 
@@ -32,7 +32,7 @@ flowchart TD
     AI_STEPS_OPTION -- "Tidak" --> AI_OPTION{"Gunakan Skema AI?"}
     AI_STEPS --> AI_OPTION
     AI_OPTION -- "Tidak" --> AI_SAVE_DESCRIPTION[Simpan uraian dan lanjutkan Local File]
-    AI_OPTION -- "Ya" --> AI_BUTTON[User Induk menekan Generate Skema AI]
+    AI_OPTION -- "Ya" --> AI_BUTTON[Pengguna berhak menekan Generate Skema AI]
     AI_BUTTON --> AI_PROCESS[Sistem memproses uraian menggunakan alternatif AI yang sedang diuji]
     AI_PROCESS --> AI_OUTPUT[AI menghasilkan struktur fase proses bisnis]
     AI_OUTPUT --> AI_FORMAT{"Format, urutan, dan kelengkapan valid?"}
@@ -79,7 +79,7 @@ Jumlah dan isi fase mengikuti input pengguna dan tidak ditetapkan secara permane
 
 Contoh uraian manufaktur yang menyebut penerimaan PO afiliasi, persetujuan manajemen dan logistik, perencanaan produksi dan QC, produksi, inspeksi QC, pergudangan barang jadi, serta pengiriman harus menghasilkan tujuh fase tersebut. Bagian persetujuan tidak boleh dihilangkan atau digabung tanpa dasar dari input pengguna.
 
-User Induk tidak mengedit kartu fase secara langsung. Jika hasil belum sesuai, User Induk memperbaiki uraian atau daftar langkah lalu memilih generate ulang.
+Pengguna yang berhak mengubah Local File tidak mengedit kartu fase secara langsung. Jika hasil belum sesuai, ia memperbaiki uraian atau daftar langkah lalu memilih generate ulang.
 
 ## 4. Alternatif 1 — AI melalui API Eksternal Berbayar
 
@@ -139,7 +139,7 @@ Pada alternatif ini, model AI dijalankan pada infrastruktur yang dikelola TP Doc
 
 ```mermaid
 flowchart TD
-    LOCAL_START([User Induk memilih Generate Skema AI]) --> LOCAL_WEB[Next.js mengirim permintaan ke NestJS melalui API publik]
+    LOCAL_START([Pengguna berhak memilih Generate Skema AI]) --> LOCAL_WEB[Next.js mengirim permintaan ke NestJS melalui API publik]
     LOCAL_WEB --> LOCAL_TENANT[NestJS memvalidasi akun, tenant, Local File, kuota, dan input]
     LOCAL_TENANT --> LOCAL_JOB[NestJS menyimpan generation QUEUED dan membuat job BullMQ]
     LOCAL_JOB --> LOCAL_WORKER[NestJS AI Worker mengambil job]

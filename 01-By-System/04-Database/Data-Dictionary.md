@@ -61,6 +61,7 @@ Role Administrator tidak disimpan pada `memberships`. Administrator merupakan ro
 | `memberships` | Hubungan akun dengan organisasi sebagai `OWNER` atau `EMPLOYEE` | Unik per `organization_id + user_id` |
 | `invitations` | Undangan email, token hash, status, expiry, dan pengirim | Token unik; status mengikuti business flow |
 | `document_assignments` | Penugasan Local File kepada membership Karyawan | Unik per dokumen dan membership |
+| `local_file_owner_sharing_events` | Riwayat berbagi, pencabutan berbagi, dan pengambilalihan akses dokumen buatan Karyawan | Append-only per dokumen dan waktu |
 
 Aturan yang perlu ditegakkan melalui service dan transaction:
 
@@ -141,6 +142,7 @@ Upload yang terputus tetap berstatus `UPLOADING` dan dibersihkan oleh job terjad
 | Tabel | Fungsi |
 | --- | --- |
 | `local_files` | Aggregate root Local File: tenant, tahun pajak, status, versi, metode, dan editor terakhir |
+| `local_file_owner_sharing_events` | Bukti perubahan akses User Induk pada dokumen buatan Karyawan |
 | `local_file_section_progress` | Status serta validasi setiap bagian wizard |
 | `local_file_company_profiles` | Identitas entitas untuk tahun pajak dan dokumen tertentu |
 | `document_assignments` | Hak Karyawan terhadap dokumen tertentu |
@@ -148,6 +150,10 @@ Upload yang terputus tetap berstatus `UPLOADING` dan dibersihkan oleh job terjad
 Status Local File: `DRAFT`, `IN_PROGRESS`, `READY_TO_GENERATE`, `GENERATING`, `GENERATED`, dan `ARCHIVED`.
 
 `local_files.identity_hash` menyimpan hash identitas ternormalisasi untuk mencegah duplikasi entitas, tahun pajak, jenis dokumen, dan nama dokumen pada organisasi yang sama. `duplicated_from_local_file_id` mencatat sumber ketika dokumen dibuat melalui aktivitas Duplikasi.
+
+`local_files.created_by_user_id` menentukan pembuat. Dokumen buatan Karyawan dimulai dengan `owner_shared = false`; pembuat aktif dapat mengubahnya menjadi `true` untuk memberi hak lihat/ubah User Induk dan kembali `false` untuk mencabutnya. `taken_over_by_user_id` dan `taken_over_at` hanya terisi saat membership pembuat dicabut; setelah itu User Induk mendapat akses permanen dan pembuat kehilangan akses organisasi. Perubahan dicatat sebagai event `SHARED`, `REVOKED`, atau `TAKEN_OVER` dengan aktor, alasan bila perlu, dan waktu. Event tidak ditimpa.
+
+Constraint lintas tabel di application layer memastikan pembuat Karyawan aktif, User Induk penerima berada pada organisasi yang sama, serta pengambilalihan hanya sesudah membership pembuat dicabut. Perubahan membership, status berbagi/pengambilalihan, dan event audit disimpan dalam satu transaksi. Semua query dokumen, versi, snapshot, file biner, dan hasil generate menerapkan pemeriksaan akses sebelum membaca konten. Query kuota serta quota ledger User Induk menghitung dokumen privat tanpa mengungkap ID atau metadata dokumen tersebut. Penolakan identitas duplikat memakai pesan generik agar identitas dokumen privat tidak bocor.
 
 ### 7.2 Kepemilikan dan manajemen
 

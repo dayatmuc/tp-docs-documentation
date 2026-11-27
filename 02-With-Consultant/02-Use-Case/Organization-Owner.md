@@ -2,7 +2,7 @@
 
 ## 1. Definisi Aktor User Induk
 
-**User Induk** adalah pengguna pertama yang mendaftarkan perusahaan dan menjadi pemilik operasional organisasi pada TP Docs. User Induk mengelola profil perusahaan, langganan, pembayaran, kuota, anggota, penugasan dokumen, seluruh data perusahaan, serta permintaan ekspor dan penghapusan data.
+**User Induk** adalah pengguna pertama yang mendaftarkan perusahaan dan menjadi pemilik operasional organisasi pada TP Docs. User Induk mengelola profil, langganan, pembayaran, kuota, anggota, penugasan dokumen buatannya, serta permintaan ekspor dan penghapusan data organisasi. Dokumen privat buatan Karyawan hanya terlihat pada pemakaian kuota agregat, tanpa metadata atau isi; User Induk dapat melihat dan mengubahnya setelah dibagikan oleh pembuat atau diambil alih saat membership pembuat dicabut.
 
 ## 2. Daftar Use Case — User Induk
 
@@ -505,7 +505,7 @@ flowchart TB
 | UI-08.4.2        | &nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UI-08.4_                                                                               | Melihat Undangan Tertunda                         | [Aktivitas melihat undangan yang belum diterima atau kedaluwarsa]                                                               | [-]                                    | [-]                             |
 | UI-08.4.3        | &nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UI-08.4_                                                                               | Mengirim Ulang atau Membatalkan Undangan          | [Aktivitas mengirim ulang atau membatalkan token undangan]                                                                      | [-]                                    | [-]                             |
 | UI-08.4.4        | &nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UI-08.4_                                                                               | Menghapus Karyawan                                | [Aktivitas mencabut akses Karyawan tanpa menghapus akun dan dokumen perusahaan]                                                 | [-]                                    | [-]                             |
-| UI-08.5          | └── _sub dari UI-08_                                                                                                         | Menugaskan Dokumen kepada Karyawan                | [Aktivitas menentukan dokumen yang dapat dilihat dan diubah oleh Karyawan]                                                      | [-]                                    | [-]                             |
+| UI-08.5          | └── _sub dari UI-08_                                                                                                         | Menugaskan Dokumen kepada Karyawan                | [User Induk menugaskan Local File buatannya kepada Karyawan; dokumen buatan Karyawan hanya dibagikan kepada User Induk oleh pembuat dan tidak dapat ditugaskan lagi kepada Karyawan lain] | [-] | [-] |
 | UI-08.6          | └── _sub dari UI-08_                                                                                                         | Melihat Riwayat Pembayaran dan Add-on             | [Aktivitas melihat transaksi paket, pembayaran, dan pembelian kursi tambahan]                                                   | [-]                                    | [-]                             |
 | UI-08.7          | └── _sub dari UI-08_                                                                                                         | Mengelola Kuota Dokumen                           | [Aktivitas memantau dan menambah kuota dokumen perusahaan]                                                                      | UI-08.7.1 s/d UI-08.7.6                | [-]                             |
 | UI-08.7.1        | &nbsp;&nbsp;&nbsp;&nbsp;└── _sub dari UI-08.7_                                                                               | Melihat Kuota Dokumen Paket                       | [Aktivitas menampilkan kuota bawaan paket aktif]                                                                                | [-]                                    | [-]                             |
@@ -603,6 +603,6 @@ flowchart TB
 | UI-C09 | Menyetujui working copy | Untuk request sendiri, melihat change set dan menyetujui penerapan sebagai versi baru; dapat mengambil alih keputusan request Karyawan bila hak ubah pemohon dicabut, dengan jejak audit |
 | UI-C10 | Review tambahan | Membuat order baru ketika revision quota habis |
 
-User Induk dapat melihat seluruh request dan transaksi konsultasi organisasi.
+User Induk dapat melihat request dan transaksi konsultasi yang terkait Local File buatannya, yang dibagikan kepadanya, atau yang telah diambil alih. Rincian konsultasi atas dokumen privat buatan Karyawan tidak terlihat sebelum hak akses dokumen diberikan.
 
 

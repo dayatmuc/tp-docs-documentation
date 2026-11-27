@@ -26,7 +26,7 @@ Dokumen ini memuat kebutuhan nonfungsional, target layanan, keamanan, retensi, d
 - Password disimpan menggunakan Argon2id, bcrypt, atau algoritma hashing adaptif yang setara dan tidak boleh disimpan dalam bentuk asli.
 - MFA wajib bagi User Induk, Administrator, dan Konsultan serta bersifat opsional bagi Karyawan pada versi awal.
 - Akses menerapkan prinsip least privilege dan role-based access control.
-- User Induk hanya dapat mengakses organisasinya dan Karyawan hanya dapat mengakses dokumen yang ditugaskan.
+- User Induk hanya dapat mengakses dokumen buatannya, dokumen Karyawan yang dibagikan kepadanya, atau dokumen yang diambil alih setelah membership pembuat dicabut; Karyawan hanya dapat mengakses dokumen buatannya atau yang penugasannya aktif. Angka kuota organisasi ditampilkan secara agregat tanpa membocorkan metadata dokumen privat.
 - Administrator tidak otomatis dapat membaca isi dokumen perusahaan.
 - Akses dukungan terhadap data pelanggan memerlukan persetujuan, alasan, batas waktu, dan audit log.
 - Isolasi tenant diterapkan pada tabel metadata file, chunk biner, cache, pencarian, queue, dan proses background.

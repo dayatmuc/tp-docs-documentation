@@ -71,7 +71,7 @@ flowchart TB
 | Lapisan | Sumber kebenaran | Tanggung jawab |
 | --- | --- | --- |
 | Template DOCX | Tampilan | Cover, margin, font, heading, tabel, header, footer, dan section break |
-| Snapshot | Data generation | Nilai Local File pada saat User Induk mengonfirmasi generate |
+| Snapshot | Data generation | Nilai Local File pada saat pengguna berhak mengonfirmasi generate |
 | View model | Kontrak konten | Data yang sudah diformat agar aman digunakan template |
 | Renderer | Binding | Mengisi placeholder, loop, condition, dan gambar |
 | Validator | Kelayakan file | Memastikan hasil dapat digunakan dan tidak memiliki placeholder tersisa |
@@ -245,7 +245,7 @@ sequenceDiagram
 
 ### 4.1 Konsistensi snapshot
 
-- Snapshot dibuat setelah validasi readiness dan konfirmasi User Induk.
+- Snapshot dibuat setelah validasi readiness dan konfirmasi User Induk atau Karyawan yang memiliki hak ubah atas Local File. Setiap akses ke hasil dan file versi tetap mengikuti status berbagi, penugasan, dan keanggotaan saat akses dilakukan.
 - Snapshot bersifat immutable dan memiliki identifier sendiri.
 - Perubahan data Local File setelah job dibuat tidak mengubah job berjalan.
 - Generation berikutnya membuat snapshot dan document version baru.

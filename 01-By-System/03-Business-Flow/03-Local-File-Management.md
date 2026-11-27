@@ -4,7 +4,7 @@
 
 ## 1. Tujuan dan Cakupan
 
-Dokumen ini menjelaskan flow bisnis detail pengelolaan Local File oleh User Induk dan Karyawan yang ditugaskan, mulai dari membuat atau membuka dokumen, mengisi setiap kelompok data, menyimpan draft bersama, melanjutkan pekerjaan, sampai dokumen siap masuk ke proses review dan generate.
+Dokumen ini menjelaskan pengelolaan Local File oleh User Induk, Karyawan pembuat, dan Karyawan yang ditugaskan, mulai dari membuat atau membuka dokumen, mengisi data, menyimpan draft, sampai review dan generate.
 
 Nomor bagian mengikuti `UI-04 — Mengisi Data Dokumen`, `UI-05 — Kelola Data Pembanding dan Seleksi`, serta overview pada [00-Business-Flow-Overview.md](./00-Business-Flow-Overview.md). Nomor tersebut mengelompokkan isi dokumen, bukan mewajibkan urutan pengisian.
 
@@ -12,31 +12,31 @@ Nomor bagian mengikuti `UI-04 — Mengisi Data Dokumen`, `UI-05 — Kelola Data 
 
 Local File mencakup identitas dan kegiatan usaha, transaksi afiliasi dan independen, penerapan prinsip kewajaran termasuk FAR dan metode TP, informasi keuangan, serta kejadian nonkeuangan yang relevan. Uraian proses bisnis merupakan bagian wajib dari penjelasan kegiatan operasional. Skema AI hanya merupakan visual pendukung opsional untuk uraian tersebut dan bukan pengganti analisis transaksi, FAR, metode TP, atau pembanding.
 
-Jika Skema AI tidak digunakan atau layanan AI gagal, User Induk tetap dapat menyimpan uraian bisnis dan melanjutkan penyusunan Local File.
+Jika Skema AI tidak digunakan atau layanan AI gagal, pengguna yang berhak tetap dapat menyimpan uraian bisnis dan melanjutkan penyusunan Local File.
 
 ### 1.2 Pengisian Bebas Urutan dan Draft Bersama
 
-User Induk membuat Local File baru setelah entitas, tahun pajak, jenis dokumen, hak akses, dan kuota tervalidasi. User Induk kemudian dapat menugaskan Karyawan pada dokumen tertentu. Hanya User Induk dan Karyawan dengan penugasan aktif yang dapat melihat serta mengisi draft tersebut. Pencabutan penugasan langsung menutup akses Karyawan tanpa menghapus data yang sudah tersimpan.
+User Induk atau Karyawan dengan membership aktif membuat Local File baru setelah entitas, tahun pajak, jenis dokumen, hak akses, dan kuota organisasi tervalidasi. Dokumen buatan User Induk dapat ditugaskan kepada Karyawan. Dokumen buatan Karyawan dimulai privat; pembuat dapat memberi atau mencabut akses lihat dan ubah User Induk, tetapi User Induk tidak dapat menugaskannya kepada Karyawan lain. Pencabutan penugasan atau berbagi langsung menutup akses penerima ke draft, versi, preview, dan unduhan tanpa menghapus data. User Induk hanya melihat pemakaian kuota dokumen privat secara agregat tanpa metadata dokumen.
 
 Bagian 01–10 dapat dibuka dalam urutan bebas. Contohnya, User Induk mengisi bagian 03 sementara Karyawan mengisi bagian 05 pada Local File PT A yang sama. Setiap bagian memiliki status `Belum diisi`, `Sedang dikerjakan`, `Perlu diperbaiki`, atau `Lengkap`; progres dihitung dari jumlah bagian lengkap, bukan nomor bagian tertinggi yang pernah dibuka. Ketergantungan data antarbagian ditampilkan sebagai kebutuhan informasi atau validasi, bukan sebagai pengunci navigasi.
 
-Bagian 11, Review & Generate, dapat dibuka kapan saja untuk melihat kekurangan dan menuju bagian yang perlu dilengkapi. Hanya User Induk yang dapat mengonfirmasi generate setelah seluruh syarat valid. Penyimpanan setiap perubahan mencatat pengubah, waktu, dan versi bagian. Jika versi bagian berubah sejak pengguna membukanya, penyimpanan versi lama ditolak dan data terbaru ditampilkan untuk ditinjau; perubahan pengguna lain tidak ditimpa diam-diam.
+Bagian 11, Review & Generate, dapat dibuka kapan saja untuk melihat kekurangan. User Induk, Karyawan pembuat, atau Karyawan dengan penugasan aktif dapat mengonfirmasi generate setelah seluruh syarat valid. Penyimpanan setiap perubahan mencatat pengubah, waktu, dan versi bagian. Jika versi bagian berubah sejak pengguna membukanya, penyimpanan versi lama ditolak dan data terbaru ditampilkan untuk ditinjau.
 
 ## 2. Siklus Awal Dokumen Local File
 
 ```mermaid
 flowchart TD
-    LF_START([Dashboard User Induk]) --> LF_ACTION{"Buat dokumen baru atau buka dokumen?"}
+    LF_START([Dashboard User Induk atau Karyawan aktif]) --> LF_ACTION{"Buat dokumen baru atau buka dokumen?"}
 
-    LF_ACTION -- "Buat baru" --> LF_ACCESS[Validasi organisasi, paket, dan hak akses User Induk]
+    LF_ACTION -- "Buat baru" --> LF_ACCESS[Validasi organisasi, paket, dan hak pembuat]
     LF_ACCESS --> LF_QUOTA{"Kuota dokumen tersedia?"}
-    LF_QUOTA -- "Tidak" --> LF_LIMIT[Arahkan ke upgrade paket atau add-on dokumen]
+    LF_QUOTA -- "Tidak" --> LF_LIMIT[User Induk dapat mengelola kapasitas paket]
     LF_LIMIT --> LF_END_LIMIT([Dokumen belum dibuat])
     LF_QUOTA -- "Ya" --> LF_IDENTITY[Input nama dokumen, entitas, tahun pajak, dan jenis dokumen]
     LF_IDENTITY --> LF_VALIDATE_ID{"Identitas dokumen valid dan tidak duplikat?"}
     LF_VALIDATE_ID -- "Tidak" --> LF_ID_ERROR[Perbaiki identitas dokumen]
     LF_ID_ERROR --> LF_IDENTITY
-    LF_VALIDATE_ID -- "Ya" --> LF_CREATE[Buat dokumen dan gunakan satu kuota]
+    LF_VALIDATE_ID -- "Ya" --> LF_CREATE[Buat dokumen dan gunakan satu kuota; buatan Karyawan privat]
     LF_CREATE --> LF_DRAFT[Status awal Draft]
 
     LF_ACTION -- "Buka draft" --> LF_HISTORY[Buka daftar history dokumen]
@@ -139,7 +139,7 @@ flowchart TD
     class K_SHARE_MORE,K_TOTAL_OK,K_MANAGER_MORE,B_STEPS_OPTION,B_AI_OPTION,B_AI_SUCCESS,B_RETRY,B_AI_VALID,F_VALID decision;
 ```
 
-Uraian proses bisnis merupakan langkah wajib. Daftar langkah proses dan Skema AI bersifat opsional. Jika daftar langkah diberikan, setiap langkah harus terwakili tepat satu kali dalam fase AI dan urutannya harus dipertahankan. User Induk tidak mengedit kartu fase secara langsung; koreksi dilakukan dengan memperbaiki input lalu memilih generate ulang.
+Uraian proses bisnis merupakan langkah wajib. Daftar langkah proses dan Skema AI bersifat opsional. Jika daftar langkah diberikan, setiap langkah harus terwakili tepat satu kali dalam fase AI dan urutannya harus dipertahankan. Pengguna yang berhak tidak mengedit kartu fase secara langsung; koreksi dilakukan dengan memperbaiki input lalu memilih generate ulang.
 
 ## 5. Tahap 5–6 — Pihak Afiliasi, Pesaing, dan Gambaran Industri
 
@@ -354,8 +354,9 @@ Validasi kelengkapan untuk generate tidak membatasi urutan pengisian. Bagian yan
 ## 12. Aturan Penting
 
 1. Dokumen dan seluruh perubahan merupakan milik organisasi.
-2. User Induk dapat melihat serta mengubah seluruh bagian dokumen organisasi.
-3. Sistem tidak memverifikasi kebenaran substantif seluruh data; User Induk bertanggung jawab atas isi dan hak penggunaan file.
+2. User Induk dapat melihat dan mengubah dokumen buatannya, dokumen Karyawan yang dibagikan kepadanya, atau dokumen yang diambil alih setelah membership pembuat dicabut. Karyawan dapat melihat dan mengubah dokumen buatannya atau dokumen dengan penugasan aktif.
+3. Sistem tidak memverifikasi kebenaran substantif seluruh data; pembuat dan pengguna yang menyunting bertanggung jawab atas isi serta hak penggunaan file.
+4. Hanya Karyawan pembuat yang dapat mengubah pilihan berbagi dokumennya selama membership aktif. Saat membership pembuat dicabut, sistem mengalihkan akses kepada User Induk dan mencatatnya pada audit.
 4. File upload harus melewati validasi tipe, ukuran, ekstensi, dan malware scanning.
 5. Data dari file tidak boleh menggantikan data tersimpan sebelum validasi berhasil.
 6. Perubahan pada transaksi, metode, PLI, atau pembanding dapat membuat hasil analisis sebelumnya perlu dihitung atau ditinjau ulang.
